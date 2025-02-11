@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jayden Bailey"
+		]
+	},
+	"comments-desc": "Embeds comments under wiki pages",
+	"ipb-action-comments": "Posting comments on wiki pages",
+	"comments-container-header": "Comments"
+}

@@ -1,0 +1,111 @@
+[
+	{
+		"name": "com_comment",
+		"comment": "Every comment on a wiki page creates a comment row.",
+		"columns": [
+			{
+				"name": "c_id",
+				"comment": "Unique ID to identify each comment",
+				"type": "integer",
+				"options": { "unsigned": true, "notnull": true, "autoincrement": true }
+			},
+			{
+				"name": "c_page",
+				"comment": "Key to page.page_id. This should never be invalid",
+				"type": "integer",
+				"options": { "unsigned": true, "notnull": true }
+			},
+			{
+				"name": "c_actor",
+				"comment": "Key to actor.actor_id of the user or IP who made this comment",
+				"type": "bigint",
+				"options": { "unsigned": true, "notnull": true, "default": 0 }
+			},
+			{
+				"name": "c_timestamp",
+				"comment": "Timestamp of when the comment was created",
+				"type": "mwtimestamp",
+				"options": { "notnull": true }
+			},
+			{
+				"name": "c_parent",
+				"comment": "If this comment is a response to another comment, this is a key to that comment's c_id",
+				"type": "integer",
+				"options": { "unsigned": true }
+			},
+			{
+				"name": "c_deleted",
+				"comment": "Boolean for whether the comment is deleted or not",
+				"type": "mwtinyint",
+				"options": { "unsigned": true, "notnull": true, "default": 0 }
+			},
+			{
+				"name": "c_rating",
+				"comment": "The comment's current rating. Not intended to be an accurate copy of SUM(*)",
+				"type": "integer",
+				"options": { "unsigned": true, "notnull": true, "default": 0 }
+			},
+			{
+				"name": "c_html",
+				"comment": "Parsed HTML of the comment, generated at the time the comment was saved/edited",
+				"type": "blob",
+				"options": { "notnull": true, "length": 16777215 }
+			},
+			{
+				"name": "c_wikitext",
+				"comment": "Wikitext of the comment, used for populating the textarea when the comment is edited",
+				"type": "blob",
+				"options": { "notnull": true, "length": 16777215 }
+			}
+		],
+		"indexes": [
+			{
+				"name": "c_timestamp",
+				"columns": [ "c_timestamp" ],
+				"unique": false
+			},
+			{
+				"name": "c_page_timestamp",
+				"columns": [ "c_page", "c_timestamp" ],
+				"unique": false
+			},
+			{
+				"name": "c_actor_timestamp",
+				"columns": [ "c_actor", "c_timestamp" ],
+				"unique": false
+			}
+		],
+		"pk": [
+			"c_id"
+		]
+	},
+	{
+		"name": "com_rating",
+		"comment": "A row for each user's interaction (upvote/downvote) with an individual comment",
+		"columns": [
+			{
+				"name": "cr_comment",
+				"comment": "Key to comment.c_id",
+				"type": "integer",
+				"options": { "unsigned": true, "notnull": true }
+			},
+			{
+				"name": "cr_actor",
+				"comment": "Key to actor.actor_id of the user or IP who made this rating",
+				"type": "bigint",
+				"options": { "unsigned": true, "notnull": true, "default": 0 }
+			},
+			{
+				"name": "cr_rating",
+				"comment": "Integer representation of the rating (-1 or 1)",
+				"type": "integer",
+				"options": { "notnull": true }
+			}
+		],
+		"indexes": [],
+		"pk": [
+			"cr_comment",
+			"cr_actor"
+		]
+	}
+]

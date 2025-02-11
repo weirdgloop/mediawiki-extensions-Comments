@@ -1,0 +1,95 @@
+{
+	"name": "Comments",
+	"version": "1.0",
+	"author": [
+		"[https://github.com/jayktaylor Jayden Bailey]",
+		"..."
+	],
+	"url": "https://weirdgloop.org",
+	"descriptionmsg": "comments-desc",
+	"license-name": "GPL-3.0-or-later",
+	"type": "specialpage",
+	"requires": {
+		"MediaWiki": ">= 1.41.0"
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\Comments\\": "src/",
+		"MediaWiki\\Extension\\Comments\\Api": "src/api"
+	},
+	"MessagesDirs": {
+		"Comments": [
+			"i18n"
+		]
+	},
+	"config_prefix": "wgComments",
+	"config": {
+		"ShowOnMainPage": {
+			"value": false
+		}
+	},
+	"Hooks": {
+		"LoadExtensionSchemaUpdates": "main",
+		"GetAllBlockActions": "main",
+		"BeforePageDisplay": "main"
+	},
+	"AvailableRights": [
+		"comments",
+		"comments-manage"
+	],
+	"HookHandlers": {
+		"main": {
+			"class": "MediaWiki\\Extension\\Comments\\CommentsHooks",
+			"services": [
+				"MainConfig"
+			]
+		}
+	},
+	"RestRoutes": [
+		{
+			"path": "/comments/v0/page/{pageid}",
+			"method": "GET",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentsForPage",
+			"services": [
+				"TitleFactory",
+				"Comments.CommentFactory"
+			]
+		},
+		{
+			"path": "/comments/v0/comment",
+			"method": "POST",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiPostComment",
+			"services": [
+				"TitleFactory",
+				"Comments.CommentFactory",
+				"UserFactory"
+			]
+		}
+	],
+	"ServiceWiringFiles": [
+		"src/ServiceWiring.php"
+	],
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "Comments"
+	},
+	"ConfigRegistry": {
+		"Comments": "GlobalVarConfig::newInstance"
+	},
+	"ResourceModules": {
+		"ext.comments": {
+			"scripts": [
+				"src/resources/dist/index.js"
+			],
+			"styles": [
+				"src/frontend/styles/index.less"
+			],
+			"dependencies": [
+				"mediawiki.api"
+			],
+			"messages": [
+				"comments-container-header"
+			]
+		}
+	},
+	"manifest_version": 2
+}
