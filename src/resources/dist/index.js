@@ -2,6 +2,26 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/frontend/AddCommentController.js":
+/*!**********************************************!*\
+  !*** ./src/frontend/AddCommentController.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+class AddCommentController {
+  constructor() {
+    this.$container = $('<div>').attr('id', 'ext-comments-add-comment');
+    this.$input = $('<textarea>').attr('id', 'ext-comments-add-comment-input');
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddCommentController);
+
+/***/ }),
+
 /***/ "./src/frontend/util.js":
 /*!******************************!*\
   !*** ./src/frontend/util.js ***!
@@ -87,38 +107,41 @@ var __webpack_exports__ = {};
   \*******************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./src/frontend/util.js");
+/* harmony import */ var _AddCommentController__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AddCommentController */ "./src/frontend/AddCommentController.js");
 
 
 
-let HAS_INITED = false,
-  $container,
-  $addCommentContainer,
-  $commentTree;
 
-/**
- * Initialise the frontend for the comments extension. We do not initialise until the container is in the viewport,
- * to prevent unnecessary API calls for all page views.
- */
-const init = () => {
-  console.log('Initialised Comments');
-};
-
-/**
- * Build the comment container and add it to the DOM
- */
-const buildCommentsContainer = () => {
-  $addCommentContainer = $('<div>').attr('id', 'mw-comments-add-comment');
-  $commentTree = $('<div>').attr('id', 'mw-comments-tree');
-  $container = $('<div>').attr('id', 'mw-comments-container').append($('<h3>').text(mw.message('comments-container-header').text()), $addCommentContainer, $commentTree);
-  $('#bodyContent').append($container);
-};
-$(() => buildCommentsContainer());
-$(window).on('DOMContentLoaded load resize scroll', () => {
-  if ((0,_util__WEBPACK_IMPORTED_MODULE_0__.isElementInView)($container) && !HAS_INITED) {
-    HAS_INITED = true;
-    init();
+class Comments {
+  constructor() {
+    this.init = false;
+    this.addCommentController = new _AddCommentController__WEBPACK_IMPORTED_MODULE_1__["default"]();
+    this.$commentTree = $('<div>').attr('id', 'ext-comments-tree');
+    this.$container = $('<div>').attr('id', 'ext-comments-container').append($('<h3>').text(mw.message('comments-container-header').text()), this.addCommentController.$container, this.$commentTree);
+    this.addEventListeners();
   }
-});
+
+  /**
+   * Add the container for the comments interface to the page
+   */
+  addContainerToPage() {
+    $('#bodyContent').append(this.$container);
+  }
+
+  /**
+   * Add the required event listeners
+   */
+  addEventListeners() {
+    $(() => this.addContainerToPage());
+    $(window).on('DOMContentLoaded load resize scroll', () => {
+      if ((0,_util__WEBPACK_IMPORTED_MODULE_0__.isElementInView)(this.$container) && !this.init) {
+        this.init = true;
+        // TODO actually make initial API calls and render things
+      }
+    });
+  }
+}
+const comments = new Comments();
 })();
 
 /******/ })()

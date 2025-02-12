@@ -31,7 +31,7 @@
 				"name": "c_parent",
 				"comment": "If this comment is a response to another comment, this is a key to that comment's c_id",
 				"type": "integer",
-				"options": { "unsigned": true }
+				"options": { "unsigned": true, "notnull": false }
 			},
 			{
 				"name": "c_deleted",

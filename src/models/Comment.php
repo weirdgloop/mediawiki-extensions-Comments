@@ -1,10 +1,14 @@
 <?php
 
-namespace MediaWiki\Extension\Comments;
+namespace MediaWiki\Extension\Comments\Models;
 
+use InvalidArgumentException;
+use ManualLogEntry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
+use ParserOptions;
+use Wikimedia\Parsoid\Ext\ParsoidExtensionAPI;
 
 class Comment {
 	/** @var int */
@@ -48,27 +52,23 @@ class Comment {
 	}
 
 	/**
-	 * @param stdClass $row
-	 * @return void
-	 */
-	public function loadFromRow( $row ) {
-		$this->id = (int)$row->c_id;
-		$this->pageId = (int)$row->c_page;
-		$this->actorId = (int)$row->c_actor;
-		$this->parent = (int)$row->c_parent;
-		$this->timestamp = wfTimestamp( TS_MW, $row->timestamp );
-		$this->deleted = (bool)$row->c_deleted;
-		$this->rating = (int)$row->c_rating;
-		$this->html = (string)$row->c_html;
-		$this->wikitext = (string)$row->c_wikitext;
-	}
-
-	/**
 	 * The ID of this comment
 	 * @return int
 	 */
 	public function getId() {
 		return $this->id;
+	}
+
+	/**
+	 * Sets the ID of this comment. Once a comment as been assigned an ID, the ID is **immutable**.
+	 *
+	 * This method returns the current Comment object for easier chaining.
+	 * @param int $id
+	 * @return $this
+	 */
+	public function setId( $id ) {
+		$this->id = $id;
+		return $this;
 	}
 
 	/**
@@ -220,6 +220,53 @@ class Comment {
 	}
 
 	/**
+	 * The timestamp for the comment
+	 * @return string
+	 */
+	public function getTimestamp() {
+		return $this->timestamp;
+	}
+
+	/**
+	 * Sets the timestamp for this comment.
+	 *
+	 * This method returns the current Comment object for easier chaining.
+	 *
+	 * @param string $ts
+	 * @return $this
+	 */
+	public function setTimestamp( $ts ) {
+		$this->timestamp = $ts;
+		return $this;
+	}
+
+	/**
+	 * The rating for the comment.
+	 *
+	 * This is not necessarily equivalent to a SUM() of all CommentRating objects
+	 * associated with this comment, and is instead used as a quick lookup,
+	 * similarly to `user_editcount` in MediaWiki core.
+	 *
+	 * @return int
+	 */
+	public function getRating() {
+		return $this->rating;
+	}
+
+	/**
+	 * Sets the rating for this comment.
+	 *
+	 * This method returns the current Comment object for easier chaining.
+	 *
+	 * @param number $rating
+	 * @return $this
+	 */
+	public function setRating( $rating ) {
+		$this->rating = $rating;
+		return $this;
+	}
+
+	/**
 	 * Parse the wikitext and sets the HTML to the output. For convenience, this method also returns the HTML.
 	 *
 	 * This method should typically only be called once: when the wikitext is changed. Re-parsing the comment
@@ -231,8 +278,11 @@ class Comment {
 			throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
 		}
 
-		$parser = MediaWikiServices::getInstance()->getParser();
-		$this->html = $parser->recursiveTagParseFully( $this->wikitext );
+		$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
+		$parserOpts = $this->actor ? ParserOptions::newFromUser( $this->actor ) : ParserOptions::newFromAnon();
+		$parserOutput = $parser->parse( $this->wikitext, $this->title, $parserOpts );
+
+		$this->html = $parserOutput->getText();
 		return $this->html;
 	}
 
@@ -288,5 +338,39 @@ class Comment {
 			->execute();
 
 		return $dbw->affectedRows() ? $dbw->insertId() : null;
+	}
+
+	/**
+	 * Creates a ManualLogEntry for the comment and returns the ID of the submitted log.
+	 * @return int
+	 */
+	public function submitLog() {
+		$log = new ManualLogEntry( 'comments', 'create' );
+		$log->setPerformer( $this->actor );
+		$log->setTarget( $this->title );
+		$log->setTimestamp( $this->timestamp );
+		$log->setComment( $this->wikitext );
+
+		$id = $log->insert();
+		$log->publish( $id );
+		return $id;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function toArray() {
+		return [
+			'id' => $this->id,
+			'timestamp' => $this->timestamp,
+			'actor' => $this->actor ? [
+				'id' => $this->actor->getId(),
+				'name' => $this->actor->getName()
+			] : null,
+			'deleted' => $this->deleted,
+			'rating' => $this->rating,
+			'html' => $this->html,
+			'wikitext' => $this->wikitext
+		];
 	}
 }

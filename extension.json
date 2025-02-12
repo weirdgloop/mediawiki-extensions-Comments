@@ -14,7 +14,8 @@
 	},
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\Comments\\": "src/",
-		"MediaWiki\\Extension\\Comments\\Api": "src/api"
+		"MediaWiki\\Extension\\Comments\\Api": "src/api",
+		"MediaWiki\\Extension\\Comments\\Models": "src/models"
 	},
 	"MessagesDirs": {
 		"Comments": [
@@ -30,7 +31,8 @@
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "main",
 		"GetAllBlockActions": "main",
-		"BeforePageDisplay": "main"
+		"BeforePageDisplay": "main",
+		"ChangesListSpecialPageStructuredFilters": "main"
 	},
 	"AvailableRights": [
 		"comments",
@@ -90,6 +92,16 @@
 				"comments-container-header"
 			]
 		}
+	},
+	"LogTypes": [ "comments" ],
+	"LogNames": {
+		"comments": "commentslog"
+	},
+	"LogHeaders": {
+		"comments": "commentslogpagetext"
+	},
+	"LogActionsHandlers": {
+		"comments/*": "LogFormatter"
 	},
 	"manifest_version": 2
 }

@@ -58,6 +58,7 @@ class ApiPostComment extends CommentApiHandler {
 			->setWikitext( $text );
 
 		$comment->save();
+		$comment->submitLog();
 	}
 
 	public function getParamSettings() {

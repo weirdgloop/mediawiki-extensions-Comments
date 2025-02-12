@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Comments;
 
+use ChangesListBooleanFilter;
 use DatabaseUpdater;
 use MediaWiki\Block\Hook\GetAllBlockActionsHook;
 use MediaWiki\Config\Config;
@@ -9,13 +10,16 @@ use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\Permissions\Authority;
+use MediaWiki\SpecialPage\ChangesListSpecialPage;
+use MediaWiki\SpecialPage\Hook\ChangesListSpecialPageStructuredFiltersHook;
 use MediaWiki\User\User;
 use Skin;
 
 class CommentsHooks implements
 	LoadExtensionSchemaUpdatesHook,
 	GetAllBlockActionsHook,
-	BeforePageDisplayHook
+	BeforePageDisplayHook,
+	ChangesListSpecialPageStructuredFiltersHook
 {
 	private Config $config;
 
@@ -61,6 +65,25 @@ class CommentsHooks implements
 		}
 
 		$out->addModules( 'ext.comments' );
+	}
+
+	/**
+	 * @param ChangesListSpecialPage $special
+	 * @return void
+	 */
+	public function onChangesListSpecialPageStructuredFilters( $special ) {
+		new ChangesListBooleanFilter( [
+			'name' => 'hidecomments',
+			'priority' => -10,
+			'group' => $special->getFilterGroup( 'changeType' ),
+			'label' => 'comments-rcfilters-comments-label',
+			'default' => false,
+			'description' => 'comments-rcfilters-comments-desc',
+			'showHideSuffix' => 'showhidecomments',
+			'isRowApplicableCallable' => static function ( $ctx, $rc ) {
+				return true;
+			}
+		] );
 	}
 
 	/**

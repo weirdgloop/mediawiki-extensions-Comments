@@ -3,15 +3,27 @@
 namespace MediaWiki\Extension\Comments;
 
 use InvalidArgumentException;
-use MediaWiki\Title\Title;
+use MediaWiki\Extension\Comments\Models\Comment;
+use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\ActorStore;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
 
 class CommentFactory {
 	private LBFactory $lbFactory;
 
-	public function __construct( LBFactory $lbFactory ) {
+	private TitleFactory $titleFactory;
+
+	private ActorStore $actorStore;
+
+	public function __construct(
+		LBFactory $lbFactory,
+		TitleFactory $titleFactory,
+		ActorStore $actorStore
+	) {
 		$this->lbFactory = $lbFactory;
+		$this->titleFactory = $titleFactory;
+		$this->actorStore = $actorStore;
 	}
 
 	/**
@@ -29,57 +41,31 @@ class CommentFactory {
 	 */
 	public function newFromRow( $row ) {
 		$comment = new Comment();
-		$comment->loadFromRow( $row );
+		$comment->setId( (int)$row->c_id );
+
+		$pageId = (int)$row->c_page;
+		if ( !empty( $pageId ) ) {
+			$comment->setTitle( $this->titleFactory->newFromID( $pageId ) );
+		}
+
+		$actorId = (int)$row->c_actor;
+		if ( !empty( $actorId ) ) {
+			$comment->setUser( $this->actorStore->getActorById(
+				$actorId, $this->lbFactory->getReplicaDatabase() ), $actorId );
+		}
+
+		$parentId = (int)$row->c_parent;
+		if ( !empty( $parentId ) ) {
+			$comment->setParent( $this->titleFactory->newFromID( $parentId ) );
+		}
+
+		$comment->setTimestamp( wfTimestamp( TS_MW, $row->c_timestamp ) );
+		$comment->setDeleted( (bool)$row->c_deleted );
+		$comment->setWikitext( (string)$row->c_wikitext, false );
+		$comment->setHtml( (string)$row->c_html );
+		$comment->setRating( (int)$row->c_rating );
+
 		return $comment;
-	}
-
-	/**
-	 * Retrieve all of the comments for a given page
-	 * @param Title|int $page
-	 * @param bool $deleted Return deleted comments (default: false)
-	 * @return Comment[]
-	 */
-	public function getPageComments( $page, $deleted = false ) {
-		// TODO: add limit and offset param
-		if ( $page instanceof Title ) {
-			$page = $page->getId();
-		}
-
-		$db = $this->lbFactory->getPrimaryDatabase();
-		$res = $db->newSelectQueryBuilder()
-			->fields( '*' )
-			->from( 'com_comment' )
-			->where( [ 'c_page' => $page, 'c_deleted' => (int)$deleted ] )
-			->caller( __METHOD__ )
-			->fetchResultSet();
-
-		$c = [];
-		foreach ( $res as $row ) {
-			$c[] = $this->newFromRow( $row );
-		}
-		return $c;
-	}
-
-	/**
-	 * Retrieve all of the comments for a given parent comment
-	 * @param Comment $parent
-	 * @param bool $deleted Return deleted comments (default: false)
-	 * @return Comment[]
-	 */
-	public function getChildComments( $parent, $deleted = false ) {
-		$db = $this->lbFactory->getPrimaryDatabase();
-		$res = $db->newSelectQueryBuilder()
-			->fields( '*' )
-			->from( 'com_comment' )
-			->where( [ 'c_parent' => $parent->getId(), 'c_deleted' => (int)$deleted ] )
-			->caller( __METHOD__ )
-			->fetchResultSet();
-
-		$c = [];
-		foreach ( $res as $row ) {
-			$c[] = $this->newFromRow( $row );
-		}
-		return $c;
 	}
 
 	/**

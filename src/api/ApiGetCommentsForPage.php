@@ -4,9 +4,11 @@ namespace MediaWiki\Extension\Comments\Api;
 
 use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Extension\Comments\CommentsHooks;
+use MediaWiki\Extension\Comments\CommentsPager;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
+use RequestContext;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiGetCommentsForPage extends SimpleHandler {
@@ -39,11 +41,43 @@ class ApiGetCommentsForPage extends SimpleHandler {
 
 		$showDeleted = CommentsHooks::canUserModerate( $this->getAuthority() );
 
-		// TODO: pagination
-		$comments = $this->commentFactory->getPageComments( $title, $showDeleted );
-		$resp = $this->getResponseFactory()->createJson( [ 'comments' => $comments ] );
+		$pager = new CommentsPager(
+			RequestContext::getMain(), [
+				'includeDeleted' => $showDeleted
+			],
+			null,
+			null,
+			null,
+			$title,
+			null
+		);
 
-		return $resp;
+		$comments = [];
+
+		$limit = (int)$params[ 'limit' ];
+		$offset = (int)$params[ 'offset' ];
+		wfDebug( "comments offset is $offset" );
+
+		$pager->setLimit( $limit );
+		$pager->setOffset( $offset );
+
+		if ( $pager->getNumRows() > 0 ) {
+			$count = 0;
+			foreach ( $pager->getResult() as $row ) {
+				if ( ++$count > $limit ) {
+					break;
+				}
+				$comments[] = $this->commentFactory->newFromRow( $row )->toArray();
+			}
+		}
+
+		return $this->getResponseFactory()->createJson( [
+			'query' => [
+				'limit' => $limit,
+				'offset' => $pager->getResultOffset()
+			],
+			'comments' => $comments
+		] );
 	}
 
 	public function getParamSettings() {
@@ -52,6 +86,18 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				self::PARAM_SOURCE => 'path',
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => true
+			],
+			'limit' => [
+				self::PARAM_SOURCE => 'query',
+				ParamValidator::PARAM_TYPE => 'integer',
+				ParamValidator::PARAM_REQUIRED => false,
+				ParamValidator::PARAM_DEFAULT => 50
+			],
+			'offset' => [
+				self::PARAM_SOURCE => 'query',
+				ParamValidator::PARAM_TYPE => 'integer',
+				ParamValidator::PARAM_REQUIRED => false,
+				ParamValidator::PARAM_DEFAULT => 0
 			]
 		];
 	}
