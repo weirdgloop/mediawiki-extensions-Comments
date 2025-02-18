@@ -1,10 +1,10 @@
 <?php
 
-namespace MediaWiki\Extension\Comment\Api;
+namespace MediaWiki\Extension\Comments\Api;
 
-use MediaWiki\Extension\Comments\Api\CommentApiHandler;
 use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\Validator\JsonBodyValidator;
 use MediaWiki\Title\TitleFactory;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -30,16 +30,16 @@ class ApiPostComment extends CommentApiHandler {
 	public function run() {
 		parent::run();
 
-		$params = $this->getValidatedParams();
-		$pageid = $params[ 'pageid' ];
+		$body = $this->getValidatedBody();
+		$pageid = $body[ 'pageid' ];
 
 		$page = $this->titleFactory->newFromID( $pageid );
 		if ( !$page || !$page->exists() ) {
 			throw new HttpException( "Page with ID $pageid does not exist", 400 );
 		}
 
-		$text = $params[ 'text' ];
-		$parentId = $params[ 'parentid' ];
+		$text = $body[ 'text' ];
+		$parentId = $body[ 'parentid' ];
 
 		$parent = null;
 		if ( $parentId ) {
@@ -47,6 +47,9 @@ class ApiPostComment extends CommentApiHandler {
 
 			if ( $parent->isDeleted() ) {
 				throw new HttpException( "Parent comment $parentId does not exist", 400 );
+			}
+			if ( $parent->getParent() ) {
+				throw new HttpException( "Cannot reply to a comment that already has a parent", 400 );
 			}
 		}
 
@@ -59,25 +62,39 @@ class ApiPostComment extends CommentApiHandler {
 
 		$comment->save();
 		$comment->submitLog();
+
+		return $this->getResponseFactory()->createJson( [
+			'comment' => $comment->toArray()
+		] );
 	}
 
-	public function getParamSettings() {
-		return [
+	/**
+	 * @inheritDoc
+	 */
+	public function getBodyValidator( $contentType ) {
+		if ( $contentType !== 'application/json' ) {
+			throw new HttpException( "Unsupported Content-Type",
+				415,
+				[ 'content_type' => $contentType ]
+			);
+		}
+
+		return new JsonBodyValidator( [
 			'pageid' => [
-				self::PARAM_SOURCE => 'post',
+				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => true
 			],
 			'parentid' => [
-				self::PARAM_SOURCE => 'post',
+				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => false
 			],
 			'text' => [
-				self::PARAM_SOURCE => 'post',
+				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'string',
 				ParamValidator::PARAM_REQUIRED => true
-			]
-		];
+			],
+		] );
 	}
 }

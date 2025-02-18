@@ -1,19 +1,24 @@
 'use strict';
 
-import { isElementInView } from './util';
 import AddCommentController from './AddCommentController';
+import CommentListContoller from './CommentListContoller';
 
 class Comments {
 	constructor() {
 		this.init = false;
-		this.addCommentController = new AddCommentController();
-		this.$commentTree = $( '<div>' ).attr( 'id', 'ext-comments-tree' );
+		this.config = mw.config.get( [
+			'wgArticleId'
+		] );
+		this.restApi = new mw.Rest();
+
+		this.commentListController = new CommentListContoller( this.restApi, this.config );
+		this.addCommentController = new AddCommentController( this.restApi, this.config, this.commentListController );
 		this.$container = $( '<div>' )
 			.attr( 'id', 'ext-comments-container' )
 			.append(
 				$( '<h3>' ).text( mw.message( 'comments-container-header' ).text() ),
 				this.addCommentController.$container,
-				this.$commentTree
+				this.commentListController.$container
 			);
 		this.addEventListeners();
 	}
@@ -30,14 +35,8 @@ class Comments {
 	 */
 	addEventListeners() {
 		$( () => this.addContainerToPage() );
-
-		$( window ).on( 'DOMContentLoaded load resize scroll', () => {
-			if ( isElementInView( this.$container ) && !this.init ) {
-				this.init = true;
-				// TODO actually make initial API calls and render things
-			}
-		} );
+		this.commentListController.addEventListeners();
 	}
 }
 
-const comments = new Comments();
+window.comments = new Comments();

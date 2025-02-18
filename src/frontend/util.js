@@ -1,8 +1,12 @@
 /**
- * @param {HTMLElement} el
+ * @param {HTMLElement|jQuery} el
  * @returns {boolean}
  */
 export const isElementInView = ( el ) => {
+	if ( el instanceof jQuery ) {
+		el = el[ 0 ];
+	}
+
 	const rect = el.getBoundingClientRect();
 
 	return (

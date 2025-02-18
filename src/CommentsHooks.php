@@ -95,7 +95,7 @@ class CommentsHooks implements
 		$block = $userOrAuthority->getBlock();
 		return (
 			$userOrAuthority->isAllowed( 'comments' ) &&
-			( $block && ( $block->isSitewide() || $block->appliesToRight( 'comments' ) ) )
+			( !$block || ( $block->isSitewide() || $block->appliesToRight( 'comments' ) ) )
 		);
 	}
 

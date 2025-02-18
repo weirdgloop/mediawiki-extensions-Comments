@@ -86,10 +86,14 @@
 				"src/frontend/styles/index.less"
 			],
 			"dependencies": [
-				"mediawiki.api"
+				"mediawiki.api",
+				"oojs-ui-core",
+				"oojs-ui-widgets",
+				"ext.veforall.main"
 			],
 			"messages": [
-				"comments-container-header"
+				"comments-container-header",
+				"comments-add-comment-placeholder"
 			]
 		}
 	},

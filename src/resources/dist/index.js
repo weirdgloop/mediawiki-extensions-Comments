@@ -13,12 +13,130 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 class AddCommentController {
-  constructor() {
+  constructor(restApi, config, commentListController) {
+    const self = this;
+
+    /** @type MediaWiki.Rest */
+    this.restApi = restApi;
+
+    /** @type object */
+    this.config = config;
+    this.commentListController = commentListController;
+    this.parentId = null;
+
+    // Create all the DOM elements
     this.$container = $('<div>').attr('id', 'ext-comments-add-comment');
-    this.$input = $('<textarea>').attr('id', 'ext-comments-add-comment-input');
+    this.$inputArea = $('<div>').addClass('ve-area-wrapper');
+    this.$input = $('<textarea>').attr({
+      rows: 5,
+      placeholder: mw.msg('comments-add-comment-placeholder')
+    });
+    this.submitBtn = new OO.ui.ButtonWidget({
+      label: 'Post comment'
+    });
+    this.submitBtn.on('click', () => {
+      self.postComment();
+    });
+    this.$toolbar = $('<div>').attr('id', 'ext-comments-add-comment-toolbar').append(this.submitBtn.$element);
+
+    // Add the elements to the DOM
+    this.$inputArea.append(this.$input);
+    this.$container.append(this.$inputArea, this.$toolbar);
+
+    // Apply VE using VEForAll
+    this.$input.applyVisualEditor();
+  }
+  getCurrentVe() {
+    const ins = this.$input.getVEInstances();
+    return ins[ins.length - 1];
+  }
+  postComment() {
+    const self = this;
+    const target = self.getCurrentVe().target;
+    const document = target.getSurface().getModel().getDocument();
+    target.getWikitextFragment(document).then(wikitext => {
+      this.restApi.post('/comments/v0/comment', {
+        pageid: self.config.wgArticleId,
+        parentid: self.parentId,
+        text: wikitext
+      });
+    });
   }
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (AddCommentController);
+
+/***/ }),
+
+/***/ "./src/frontend/Comment.js":
+/*!*********************************!*\
+  !*** ./src/frontend/Comment.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+class Comment {
+  constructor(data) {
+    this.id = data.id || null;
+    this.deleted = data.deleted !== null ? data.deleted : false;
+    this.rating = data.rating || 0;
+    this.html = data.html || '';
+    this.wikitext = data.wikitext || '';
+    this.actor = data.actor || {};
+    this.isEditing = false;
+    this.$element = $('<div>').addClass('ext-comments-comment-wrapper').data('id', this.id).html(this.html);
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Comment);
+
+/***/ }),
+
+/***/ "./src/frontend/CommentListContoller.js":
+/*!**********************************************!*\
+  !*** ./src/frontend/CommentListContoller.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./src/frontend/util.js");
+/* harmony import */ var _Comment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Comment */ "./src/frontend/Comment.js");
+
+
+class CommentListContoller {
+  constructor(restApi, config) {
+    this.init = false;
+    /** @type MediaWiki.Rest */
+    this.restApi = restApi;
+    /** @type object */
+    this.config = config;
+    this.$container = $('<div>').attr('id', 'ext-comments-tree');
+  }
+  loadComments() {
+    const self = this;
+    this.restApi.get('/comments/v0/page/' + self.config.wgArticleId, {}).then(res => {
+      if (Object.prototype.hasOwnProperty.call(res, ['comments'])) {
+        for (const data of res.comments) {
+          this.comments.push(new _Comment__WEBPACK_IMPORTED_MODULE_1__["default"](data));
+        }
+      }
+    });
+  }
+  addEventListeners() {
+    const self = this;
+    $(window).on('DOMContentLoaded load resize scroll', () => {
+      if ((0,_util__WEBPACK_IMPORTED_MODULE_0__.isElementInView)(this.$container) && !this.init) {
+        this.init = true;
+        self.loadComments();
+      }
+    });
+  }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (CommentListContoller);
 
 /***/ }),
 
@@ -33,10 +151,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   isElementInView: () => (/* binding */ isElementInView)
 /* harmony export */ });
 /**
- * @param {HTMLElement} el
+ * @param {HTMLElement|jQuery} el
  * @returns {boolean}
  */
 const isElementInView = el => {
+  if (el instanceof jQuery) {
+    el = el[0];
+  }
   const rect = el.getBoundingClientRect();
   return rect.top >= 0 && rect.left >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && rect.right <= (window.innerWidth || document.documentElement.clientWidth);
 };
@@ -106,8 +227,8 @@ var __webpack_exports__ = {};
   !*** ./src/frontend/index.js ***!
   \*******************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./src/frontend/util.js");
-/* harmony import */ var _AddCommentController__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AddCommentController */ "./src/frontend/AddCommentController.js");
+/* harmony import */ var _AddCommentController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AddCommentController */ "./src/frontend/AddCommentController.js");
+/* harmony import */ var _CommentListContoller__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./CommentListContoller */ "./src/frontend/CommentListContoller.js");
 
 
 
@@ -115,9 +236,11 @@ __webpack_require__.r(__webpack_exports__);
 class Comments {
   constructor() {
     this.init = false;
-    this.addCommentController = new _AddCommentController__WEBPACK_IMPORTED_MODULE_1__["default"]();
-    this.$commentTree = $('<div>').attr('id', 'ext-comments-tree');
-    this.$container = $('<div>').attr('id', 'ext-comments-container').append($('<h3>').text(mw.message('comments-container-header').text()), this.addCommentController.$container, this.$commentTree);
+    this.config = mw.config.get(['wgArticleId']);
+    this.restApi = new mw.Rest();
+    this.commentListController = new _CommentListContoller__WEBPACK_IMPORTED_MODULE_1__["default"](this.restApi, this.config);
+    this.addCommentController = new _AddCommentController__WEBPACK_IMPORTED_MODULE_0__["default"](this.restApi, this.config, this.commentListController);
+    this.$container = $('<div>').attr('id', 'ext-comments-container').append($('<h3>').text(mw.message('comments-container-header').text()), this.addCommentController.$container, this.commentListController.$container);
     this.addEventListeners();
   }
 
@@ -133,15 +256,10 @@ class Comments {
    */
   addEventListeners() {
     $(() => this.addContainerToPage());
-    $(window).on('DOMContentLoaded load resize scroll', () => {
-      if ((0,_util__WEBPACK_IMPORTED_MODULE_0__.isElementInView)(this.$container) && !this.init) {
-        this.init = true;
-        // TODO actually make initial API calls and render things
-      }
-    });
+    this.commentListController.addEventListeners();
   }
 }
-const comments = new Comments();
+window.comments = new Comments();
 })();
 
 /******/ })()

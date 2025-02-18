@@ -316,8 +316,9 @@ class Comment {
 	 * @return int|null
 	 */
 	public function save() {
+		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancerFactory()->getPrimaryDatabase();
+
 		$row = [
-			'c_id' => $this->id,
 			'c_page' => $this->pageId,
 			'c_actor' => $this->actorId,
 			'c_parent' => $this->parent->id,
@@ -328,16 +329,28 @@ class Comment {
 			'c_wikitext' => $this->wikitext
 		];
 
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancerFactory()->getPrimaryDatabase();
-		$dbw->newInsertQueryBuilder()
-			->table( 'com_comment' )
-			->row( $row )
-			->caller( __METHOD__ )
-			->onDuplicateKeyUpdate()
-			->set( $row )
-			->execute();
+		if ( !$this->id ) {
+			// If there is no ID for this object, then we'll presume it doesn't exist.
+			$dbw->newInsertQueryBuilder()
+				->insertInto( 'com_comment' )
+				->row( $row )
+				->caller( __METHOD__ )
+				->execute();
 
-		return $dbw->affectedRows() ? $dbw->insertId() : null;
+			// Set the ID of this object to the newly inserted object ID
+			$this->id = $dbw->insertId();
+		} else {
+			// Perform an update instead
+			$set = [ 'c_id' => $this->id ] + $row;
+
+			$dbw->newUpdateQueryBuilder()
+				->table( 'com_comment' )
+				->set( $set )
+				->caller( __METHOD__ )
+				->execute();
+		}
+
+		return $dbw->affectedRows() ? $this->id : null;
 	}
 
 	/**
