@@ -31,15 +31,15 @@ class ApiPostComment extends CommentApiHandler {
 		parent::run();
 
 		$body = $this->getValidatedBody();
-		$pageid = $body[ 'pageid' ];
+		$pageid = (int)$body[ 'pageid' ];
 
 		$page = $this->titleFactory->newFromID( $pageid );
 		if ( !$page || !$page->exists() ) {
 			throw new HttpException( "Page with ID $pageid does not exist", 400 );
 		}
 
-		$text = $body[ 'text' ];
-		$parentId = $body[ 'parentid' ];
+		$text = (string)$body[ 'text' ];
+		$parentId = (int)$body[ 'parentid' ];
 
 		$parent = null;
 		if ( $parentId ) {
@@ -61,7 +61,6 @@ class ApiPostComment extends CommentApiHandler {
 			->setWikitext( $text );
 
 		$comment->save();
-		$comment->submitLog();
 
 		return $this->getResponseFactory()->createJson( [
 			'comment' => $comment->toArray()

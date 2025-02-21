@@ -15,7 +15,8 @@
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\Comments\\": "src/",
 		"MediaWiki\\Extension\\Comments\\Api": "src/api",
-		"MediaWiki\\Extension\\Comments\\Models": "src/models"
+		"MediaWiki\\Extension\\Comments\\Models": "src/models",
+		"MediaWiki\\Extension\\Comments\\Specials": "src/specials"
 	},
 	"MessagesDirs": {
 		"Comments": [
@@ -31,8 +32,7 @@
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "main",
 		"GetAllBlockActions": "main",
-		"BeforePageDisplay": "main",
-		"ChangesListSpecialPageStructuredFilters": "main"
+		"BeforePageDisplay": "main"
 	},
 	"AvailableRights": [
 		"comments",
@@ -62,8 +62,15 @@
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiPostComment",
 			"services": [
 				"TitleFactory",
-				"Comments.CommentFactory",
-				"UserFactory"
+				"Comments.CommentFactory"
+			]
+		},
+		{
+			"path": "/comments/v0/comment/{pageid}",
+			"method": "PUT",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiEditComment",
+			"services": [
+				"Comments.CommentFactory"
 			]
 		}
 	],
@@ -97,15 +104,11 @@
 			]
 		}
 	},
-	"LogTypes": [ "comments" ],
-	"LogNames": {
-		"comments": "commentslog"
+	"SpecialPages": {
+		"Comments": "MediaWiki\\Extension\\Comments\\Specials\\SpecialComments"
 	},
-	"LogHeaders": {
-		"comments": "commentslogpagetext"
-	},
-	"LogActionsHandlers": {
-		"comments/*": "LogFormatter"
+	"ExtensionMessagesFiles": {
+		"CommentsAlias": "src/Comments.i18n.alias.php"
 	},
 	"manifest_version": 2
 }

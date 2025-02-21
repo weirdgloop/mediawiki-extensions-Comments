@@ -3,8 +3,8 @@
 namespace MediaWiki\Extension\Comments\Api;
 
 use MediaWiki\Extension\Comments\CommentFactory;
-use MediaWiki\Extension\Comments\CommentsHooks;
 use MediaWiki\Extension\Comments\CommentsPager;
+use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
@@ -39,7 +39,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 			throw new HttpException( "Page with ID $pageid does not exist", 400 );
 		}
 
-		$showDeleted = CommentsHooks::canUserModerate( $this->getAuthority() );
+		$showDeleted = Utils::canUserModerate( $this->getAuthority() );
 
 		$pager = new CommentsPager(
 			RequestContext::getMain(), [

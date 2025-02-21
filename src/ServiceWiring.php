@@ -14,5 +14,5 @@ return [
 			$services->getTitleFactory(),
 			$services->getActorStore()
 		);
-	},
+	}
 ];

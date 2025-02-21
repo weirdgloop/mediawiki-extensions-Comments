@@ -7,11 +7,8 @@
 	"comments-desc": "Embeds comments under wiki pages",
 	"ipb-action-comments": "Posting comments on wiki pages",
 	"comments-container-header": "Comments",
-	"comments-rcfilters-comments-label": "Comments",
-	"comments-rcfilters-comments-desc": "Comments on pages by users.",
-	"commentslog": "Comments log",
-	"commentslogpagetext": "This log tracks when a new comment is posted or deleted.",
-	"logentry-comments-create": "$1 posted a comment on $2",
 	"comments-add-comment-placeholder": "Start typing a comment...",
-	"right-comments": "Post comments on a wiki page"
+	"right-comments": "Post comments on a wiki page",
+	"comments": "Comments",
+	"comments-no-js": "Please wait while this container loads. Note: JavaScript must be enabled in your browser."
 }

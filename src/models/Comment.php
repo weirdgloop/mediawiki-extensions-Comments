@@ -354,22 +354,6 @@ class Comment {
 	}
 
 	/**
-	 * Creates a ManualLogEntry for the comment and returns the ID of the submitted log.
-	 * @return int
-	 */
-	public function submitLog() {
-		$log = new ManualLogEntry( 'comments', 'create' );
-		$log->setPerformer( $this->actor );
-		$log->setTarget( $this->title );
-		$log->setTimestamp( $this->timestamp );
-		$log->setComment( $this->wikitext );
-
-		$id = $log->insert();
-		$log->publish( $id );
-		return $id;
-	}
-
-	/**
 	 * @return array
 	 */
 	public function toArray() {

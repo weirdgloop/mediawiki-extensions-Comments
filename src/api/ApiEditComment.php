@@ -1,0 +1,76 @@
+<?php
+
+namespace MediaWiki\Extension\Comments\Api;
+
+use InvalidArgumentException;
+use MediaWiki\Extension\Comments\CommentFactory;
+use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\Validator\JsonBodyValidator;
+use Wikimedia\ParamValidator\ParamValidator;
+
+class ApiEditComment extends CommentApiHandler {
+	/**
+	 * @var CommentFactory
+	 */
+	private CommentFactory $commentFactory;
+
+	public function __construct( CommentFactory $commentFactory ) {
+		$this->commentFactory = $commentFactory;
+	}
+
+	/**
+	 * @throws HttpException
+	 */
+	public function run() {
+		parent::run();
+
+		$body = $this->getValidatedBody();
+		$commentId = (int)$body[ 'commentid' ];
+
+		try {
+			$comment = $this->commentFactory->newFromId( $commentId );
+		} catch ( InvalidArgumentException $ex ) {
+			throw new HttpException( "Comment does not exist", 400 );
+		}
+
+		if ( $comment->isDeleted() ) {
+			throw new HttpException( "Comment does not exist", 400 );
+		}
+		if ( $comment->getUser()->getId() === $this->getAuthority()->getUser()->getId() ) {
+			throw new HttpException( "Cannot edit another user's comment", 400 );
+		}
+
+		$text = $body[ 'text' ];
+		$comment->setWikitext( $text );
+		$comment->save();
+
+		return $this->getResponseFactory()->createJson( [
+			'comment' => $comment->toArray()
+		] );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getBodyValidator( $contentType ) {
+		if ( $contentType !== 'application/json' ) {
+			throw new HttpException( "Unsupported Content-Type",
+				415,
+				[ 'content_type' => $contentType ]
+			);
+		}
+
+		return new JsonBodyValidator( [
+			'commentid' => [
+				self::PARAM_SOURCE => 'body',
+				ParamValidator::PARAM_TYPE => 'integer',
+				ParamValidator::PARAM_REQUIRED => true
+			],
+			'text' => [
+				self::PARAM_SOURCE => 'body',
+				ParamValidator::PARAM_TYPE => 'string',
+				ParamValidator::PARAM_REQUIRED => true
+			],
+		] );
+	}
+}
