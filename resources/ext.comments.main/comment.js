@@ -12,6 +12,15 @@ class Comment {
 		this.wikitext = data.wikitext || '';
 		this.actor = data.actor || {};
 		this.timestamp = data.timestamp;
+
+		/** @type Comment[] */
+		this.children = [];
+
+		if ( data.children !== undefined ) {
+			for ( const child of data.children ) {
+				this.children.push( new Comment( child ) );
+			}
+		}
 	}
 }
 

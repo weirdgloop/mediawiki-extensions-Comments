@@ -4,11 +4,11 @@ namespace MediaWiki\Extension\Comments\Api;
 
 use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Extension\Comments\CommentsPager;
+use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
-use RequestContext;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiGetCommentsForPage extends SimpleHandler {
@@ -42,17 +42,18 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		$showDeleted = Utils::canUserModerate( $this->getAuthority() );
 
 		$pager = new CommentsPager(
-			RequestContext::getMain(), [
+			[
 				'includeDeleted' => $showDeleted
 			],
-			null,
-			null,
 			null,
 			$title,
 			null
 		);
 
+		/** @var Comment[] $comments */
 		$comments = [];
+		/** @var Comment[] $comments */
+		$childComments = [];
 
 		$limit = (int)$params[ 'limit' ];
 		$offset = (int)$params[ 'offset' ];
@@ -60,20 +61,39 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		$pager->setLimit( $limit );
 		$pager->setOffset( $offset );
 
-		if ( $pager->getNumRows() > 0 ) {
+		$res = $pager->executeQuery();
+		if ( $res->numRows() > 0 ) {
 			$count = 0;
-			foreach ( $pager->getResult() as $row ) {
+			foreach ( $res as $row ) {
 				if ( ++$count > $limit ) {
 					break;
 				}
-				$comments[] = $this->commentFactory->newFromRow( $row )->toArray();
+
+				$comment = $this->commentFactory->newFromRow( $row );
+				if ( $comment->getParent() !== null ) {
+					// If this is a child comment, add it to the child comments array for processing later
+					$childComments[] = $comment;
+				} else {
+					$comments[] = $comment->toArray() + [
+						'children' => []
+					];
+				}
+			}
+		}
+
+		// Process all the child comments, nesting them under their parents
+		foreach ( $childComments as $child ) {
+			foreach ( $comments as $index => $comment ) {
+				if ( $comment[ 'id' ] === $child->getParent()->getId() ) {
+					$comments[ $index ][ 'children' ][] = $child->toArray();
+				}
 			}
 		}
 
 		return $this->getResponseFactory()->createJson( [
 			'query' => [
 				'limit' => $limit,
-				'offset' => $pager->getResultOffset()
+				'offset' => $res->key()
 			],
 			'comments' => $comments
 		] );

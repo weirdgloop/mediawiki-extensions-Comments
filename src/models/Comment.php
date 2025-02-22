@@ -136,7 +136,7 @@ class Comment {
 	 * @return Comment|null
 	 */
 	public function getParent() {
-		// TODO
+		return $this->parent;
 	}
 
 	/**

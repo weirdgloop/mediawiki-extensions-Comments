@@ -56,7 +56,7 @@ class CommentFactory {
 
 		$parentId = (int)$row->c_parent;
 		if ( !empty( $parentId ) ) {
-			$comment->setParent( $this->titleFactory->newFromID( $parentId ) );
+			$comment->setParent( $this->newEmpty()->setId( $parentId ) );
 		}
 
 		$comment->setTimestamp( wfTimestamp( TS_ISO_8601, $row->c_timestamp ) );

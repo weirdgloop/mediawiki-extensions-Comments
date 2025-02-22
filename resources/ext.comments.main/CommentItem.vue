@@ -22,6 +22,13 @@
 				<div class="comment-actions"></div>
 			</div>
 			<div class="comment-content" v-html="comment.html"></div>
+			<div v-if="comment.children.length > 0" class="comment-children">
+				<comment-item
+					v-for="c in comment.children"
+					:key="c.id"
+					:comment="c"
+				></comment-item>
+			</div>
 		</div>
 	</div>
 </template>

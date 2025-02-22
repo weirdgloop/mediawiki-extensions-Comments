@@ -2,20 +2,27 @@
 
 namespace MediaWiki\Extension\Comments;
 
-use IContextSource;
-use MediaWiki\Linker\LinkRenderer;
+use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Pager\IndexPager;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
-use stdClass;
 use Title;
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IResultWrapper;
 
-class CommentsPager extends IndexPager {
+/**
+ * Helper class for retrieving comments from the database.
+ */
+class CommentsPager {
 	/**
 	 * @var ActorStore
 	 */
 	private ActorStore $actorStore;
+
+	/**
+	 * @var IDatabase
+	 */
+	private IDatabase $db;
 
 	/**
 	 * @var UserIdentity|null
@@ -26,6 +33,11 @@ class CommentsPager extends IndexPager {
 	 * @var Title
 	 */
 	private Title $targetTitle;
+
+	/**
+	 * @var bool Set to true to include child comments. Only has effect if $this->parent is null.
+	 */
+	private bool $includeChildren = true;
 
 	/**
 	 * @var bool Set to true to include deleted comments
@@ -42,12 +54,24 @@ class CommentsPager extends IndexPager {
 	 */
 	private ?Comment $parent = null;
 
+	/**
+	 * The offset to use in the database query. We'll always retrieve +1 extra row
+	 * so that we know if there are more results or not.
+	 * @var int
+	 */
+	private int $offset = 0;
+
+	/**
+	 * The limit to use in the database query
+	 * @var int
+	 */
+	private int $limit = 50;
+
+	private const TABLE_NAME = 'com_comment';
+
 	public function __construct(
-		IContextSource $context = null,
 		array $options,
-		LinkRenderer $linkRenderer = null,
 		UserIdentity $targetUser = null,
-		ActorStore $actorStore = null,
 		Title $targetTitle = null,
 		Comment $parent = null
 	) {
@@ -60,66 +84,92 @@ class CommentsPager extends IndexPager {
 			$this->targetTitle = $targetTitle;
 		}
 
-		$this->actorStore = $actorStore ?? $services->getActorStore();
+		$this->actorStore = $services->getActorStore();
+		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 
 		$this->deletedOnly = !empty( $options['deletedOnly'] );
 		$this->includeDeleted = !empty( $options['includeDeleted'] );
 		$this->parent = $parent;
-
-		parent::__construct( $context, $linkRenderer );
 	}
 
 	/**
-	 * @param stdClass|mixed $row
-	 * @return string
+	 * Set the offset to use in the database query
+	 * @param int $offset
+	 * @return void
 	 */
-	public function formatRow( $row ) {
-		return '';
+	public function setOffset( $offset ) {
+		$this->offset = $offset;
 	}
 
 	/**
-	 * @return array
+	 * Set the limit to use in the database query
+	 * @param int $limit
+	 * @return void
 	 */
-	public function getQueryInfo() {
-		$queryInfo = [
-			'tables' => [ 'com_comment' ],
-			'fields' => [
-				'c_id', 'c_page', 'c_actor', 'c_timestamp', 'c_parent', 'c_deleted', 'c_rating',
-				'c_html', 'c_wikitext'
-			],
-			'conds' => [],
-			'options' => [],
-			'join_conds' => []
+	public function setLimit( $limit ) {
+		$this->limit = $limit;
+	}
+
+	/**
+	 * Execute the database query
+	 * @return IResultWrapper
+	 */
+	public function executeQuery() {
+		$conds = [
+			'c_page' => $this->targetTitle->getId()
 		];
 
-		$queryInfo['conds']['c_page'] = $this->targetTitle->getId();
+		$opts = [
+			'ORDER BY' => [
+				'c_timestamp DESC'
+			],
+			'LIMIT' => $this->limit + 1,
+			'OFFSET' => $this->offset
+		];
 
-		if ( $this->targetUser ) {
-			$queryInfo['conds']['c_actor'] = $this->actorStore->findActorId( $this->targetUser, $this->getDatabase() );
-		}
+		if ( $this->includeChildren && !$this->parent ) {
+			$conds[ 'c_parent' ] = null;
 
-		if ( !$this->includeDeleted ) {
-			$queryInfo['conds'][] = 'c_deleted == 0';
-		} elseif ( $this->deletedOnly ) {
-			$queryInfo['conds'][] = 'c_deleted != 0';
+			$uqb = $this->db->newUnionQueryBuilder()->all();
+			$uqb->add(
+				$this->db->newSelectQueryBuilder()
+					->select( '*' )
+					->from(
+						$this->db->buildSelectSubquery(
+							self::TABLE_NAME,
+							'*',
+							$conds,
+							__METHOD__,
+							$opts
+						),
+						'a'
+					),
+			)->add(
+				$this->db->newSelectQueryBuilder()
+					->select( '*' )
+					->from( self::TABLE_NAME )
+					->where( 'c_parent IN ' . $this->db->buildSelectSubquery(
+						self::TABLE_NAME,
+							'c_id',
+							$conds,
+							__METHOD__,
+							$opts
+					) )
+			);
+
+			return $uqb->caller( __METHOD__ )
+				->fetchResultSet();
 		}
 
 		if ( $this->parent ) {
-			$queryInfo['conds']['c_parent'] = $this->parent->getId();
+			$conds[ 'c_parent' ] = $this->parent->getId();
 		}
 
-		return $queryInfo;
+		return $this->db->newSelectQueryBuilder()
+			->from( self::TABLE_NAME )
+			->where( $conds )
+			->options( $opts )
+			->caller( __METHOD__ )
+			->fetchResultSet();
 	}
-
-	/**
-	 * @return string
-	 */
-	public function getIndexField() {
-		return 'c_timestamp';
-	}
-
-	/**
-	 * @return void
-	 */
-	public function getNavigationBar() {}
 }
