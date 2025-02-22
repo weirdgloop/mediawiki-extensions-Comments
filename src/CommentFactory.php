@@ -59,7 +59,7 @@ class CommentFactory {
 			$comment->setParent( $this->titleFactory->newFromID( $parentId ) );
 		}
 
-		$comment->setTimestamp( wfTimestamp( TS_MW, $row->c_timestamp ) );
+		$comment->setTimestamp( wfTimestamp( TS_ISO_8601, $row->c_timestamp ) );
 		$comment->setDeleted( (bool)$row->c_deleted );
 		$comment->setWikitext( (string)$row->c_wikitext, false );
 		$comment->setHtml( (string)$row->c_html );

@@ -2,7 +2,7 @@
  * @param {HTMLElement|jQuery} el
  * @returns {boolean}
  */
-export const isElementInView = ( el ) => {
+const isElementInView = ( el ) => {
 	if ( el instanceof jQuery ) {
 		el = el[ 0 ];
 	}
@@ -15,4 +15,8 @@ export const isElementInView = ( el ) => {
 		rect.bottom <= ( window.innerHeight || document.documentElement.clientHeight ) &&
 		rect.right <= ( window.innerWidth || document.documentElement.clientWidth )
 	);
+};
+
+module.exports = {
+	isElementInView
 };

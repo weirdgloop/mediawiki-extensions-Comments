@@ -1,0 +1,75 @@
+:root {
+	--comments-negative: #6c1515;
+	--comments-positive: #156c17;
+}
+
+#ext-comments-container {
+	margin-top: 2em;
+
+	.ext-comments-comments-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5em;
+		margin-top: 0.5em;
+	}
+
+	.ext-comments-comment-item {
+		display: flex;
+		padding: 0.5em 0.25em;
+		border: 1px solid #eae9e9;
+		border-radius: 3px;
+		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
+		gap: 0.5em;
+
+		.comment-author-wrapper {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.comment-header {
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.comment-author {
+			font-weight: 600;
+		}
+
+		.comment-info {
+			font-size: 0.8em;
+		}
+	}
+
+	.comment-rating {
+		&.rating-negative {
+			color: var(--comments-negative);
+		}
+
+		&.rating-positive {
+			color: var(--comments-positive);
+		}
+	}
+
+	.comment-rating-actions {
+		display: flex;
+		flex-direction: column;
+
+		button {
+			background: none;
+			border: none;
+			cursor: pointer;
+
+			.cdx-icon {
+				color: #a4a4a4;
+			}
+
+			&.comment-rating-btn[data-type="upvote"][value="true"] .cdx-icon {
+				color: var(--comments-positive);
+			}
+
+			&.comment-rating-btn[data-type="downvote"][value="true"] .cdx-icon {
+				color: var(--comments-negative);
+			}
+		}
+	}
+}

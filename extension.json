@@ -78,29 +78,53 @@
 		"src/ServiceWiring.php"
 	],
 	"ResourceFileModulePaths": {
-		"localBasePath": "",
-		"remoteExtPath": "Comments"
+		"localBasePath": "resources",
+		"remoteExtPath": "Comments/resources"
 	},
 	"ConfigRegistry": {
 		"Comments": "GlobalVarConfig::newInstance"
 	},
 	"ResourceModules": {
-		"ext.comments": {
-			"scripts": [
-				"src/resources/dist/index.js"
+		"ext.comments.main": {
+			"class": "MediaWiki\\ResourceLoader\\CodexModule",
+			"localBasePath": "resources/ext.comments.main",
+			"remoteExtPath": "Comments/resources/ext.comments.main",
+			"packageFiles": [
+				"index.js",
+				"util.js",
+				"comment.js",
+				"App.vue",
+				"CommentsList.vue",
+				"CommentItem.vue",
+				"actions/RatingAction.vue",
+				{
+					"name": "icons.json",
+					"callback": "MediaWiki\\ResourceLoader\\CodexModule::getIcons",
+					"callbackParam": [
+						"cdxIconUpTriangle",
+						"cdxIconDownTriangle"
+					]
+				}
 			],
 			"styles": [
-				"src/frontend/styles/index.less"
+				"styles.less"
 			],
 			"dependencies": [
+				"@wikimedia/codex",
 				"mediawiki.api",
 				"oojs-ui-core",
 				"oojs-ui-widgets",
-				"ext.veforall.main"
+				"ext.veforall.main",
+				"moment"
 			],
 			"messages": [
 				"comments-container-header",
-				"comments-add-comment-placeholder"
+				"comments-add-comment-placeholder",
+				"comments-rating"
+			],
+			"targets": [
+				"desktop",
+				"mobile"
 			]
 		}
 	},

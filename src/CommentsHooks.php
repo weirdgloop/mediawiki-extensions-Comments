@@ -58,6 +58,6 @@ class CommentsHooks implements
 			return;
 		}
 
-		$out->addModules( 'ext.comments' );
+		$out->addModules( 'ext.comments.main' );
 	}
 }

@@ -56,7 +56,6 @@ class ApiGetCommentsForPage extends SimpleHandler {
 
 		$limit = (int)$params[ 'limit' ];
 		$offset = (int)$params[ 'offset' ];
-		wfDebug( "comments offset is $offset" );
 
 		$pager->setLimit( $limit );
 		$pager->setOffset( $offset );

@@ -1,30 +1,22 @@
 {
-	"name": "mediawiki-extension-comments",
 	"private": true,
 	"scripts": {
-		"start": "webpack -w --mode=development",
-		"build": "webpack --mode=production"
-	},
-	"engines": {
-		"node": "22.9.0"
+		"lint": "npm -s run lint:js && npm -s run lint:i18n",
+		"lint:fix:js": "npm -s run lint:js -- --fix",
+		"lint:fix:styles": "npm -s run lint:styles -- --fix",
+		"lint:js": "eslint --cache --max-warnings 0 .",
+		"lint:styles": "stylelint \"**/*.{less,css}\"",
+		"lint:i18n": "banana-checker --requireLowerCase=0 i18n/"
 	},
 	"devDependencies": {
-		"@babel/core": "7.22.20",
-		"@babel/plugin-transform-private-property-in-object": "7.23.4",
-		"@babel/plugin-transform-runtime": "7.15.0",
-		"@babel/preset-env": "7.2.0",
-		"@babel/register": "7.0.0",
-		"@types/jquery": "3.3.29",
-		"babel-loader": "^9.2.1",
-		"clean-webpack-plugin": "^4.0.0",
+		"@wikimedia/codex": "^1.8.0",
+		"@wikimedia/types-wikimedia": "0.4.4",
 		"eslint-config-wikimedia": "0.28.2",
-		"grunt": "1.6.1",
+		"eslint-plugin-no-jquery": "3.0.2",
 		"grunt-banana-checker": "0.13.0",
-		"grunt-eslint": "24.3.0",
-		"grunt-stylelint": "0.20.1",
-		"less": "^4.2.2",
-		"less-loader": "^12.2.0",
-		"stylelint-config-wikimedia": "0.18.0",
-		"webpack-cli": "^6.0.1"
+		"oojs": "^7.0.1",
+		"oojs-ui": "^0.50.3",
+		"stylelint-config-idiomatic-order": "10.0.0",
+		"stylelint-config-wikimedia": "0.17.2"
 	}
 }

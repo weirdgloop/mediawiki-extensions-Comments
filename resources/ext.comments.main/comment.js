@@ -1,3 +1,8 @@
+/**
+ * Class representation of a comment object returned from the API.
+ *
+ * This object should not contain any UI-dependent methods - those should be inside Comment.vue.
+ */
 class Comment {
 	constructor( data ) {
 		this.id = data.id || null;
@@ -6,14 +11,8 @@ class Comment {
 		this.html = data.html || '';
 		this.wikitext = data.wikitext || '';
 		this.actor = data.actor || {};
-
-		this.isEditing = false;
-
-		this.$element = $( '<div>' )
-			.addClass( 'ext-comments-comment-wrapper' )
-			.data( 'id', this.id )
-			.html( this.html );
+		this.timestamp = data.timestamp;
 	}
 }
 
-export default Comment;
+module.exports = Comment;

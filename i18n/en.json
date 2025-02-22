@@ -10,5 +10,6 @@
 	"comments-add-comment-placeholder": "Start typing a comment...",
 	"right-comments": "Post comments on a wiki page",
 	"comments": "Comments",
-	"comments-no-js": "Please wait while this container loads. Note: JavaScript must be enabled in your browser."
+	"comments-no-js": "Please wait while this container loads. Note: JavaScript must be enabled in your browser.",
+	"comments-rating": "$1 {{PLURAL:$2|vote|votes}}"
 }
