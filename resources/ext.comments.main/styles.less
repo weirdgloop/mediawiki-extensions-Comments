@@ -61,23 +61,36 @@
 	.comment-rating-actions {
 		display: flex;
 		flex-direction: column;
+	}
 
-		button {
-			background: none;
-			border: none;
-			cursor: pointer;
+	button {
+		background: none;
+		border: none;
+		cursor: pointer;
 
-			.cdx-icon {
-				color: #a4a4a4;
-			}
-
-			&.comment-rating-btn[data-type="upvote"][value="true"] .cdx-icon {
-				color: var(--comments-positive);
-			}
-
-			&.comment-rating-btn[data-type="downvote"][value="true"] .cdx-icon {
-				color: var(--comments-negative);
-			}
+		.cdx-icon {
+			color: #a4a4a4;
 		}
+
+		&.comment-rating-btn[data-type="upvote"][value="true"] .cdx-icon {
+			color: var(--comments-positive);
+		}
+
+		&.comment-rating-btn[data-type="downvote"][value="true"] .cdx-icon {
+			color: var(--comments-negative);
+		}
+	}
+
+	.comment-list-footer {
+		background: #f7f7f7;
+		text-align: center;
+		padding: 1em;
+		border-radius: 5px;
+		box-shadow: 0 4px 5px 0 rgba(0,0,0,0.05);
+		text-transform: uppercase;
+		font-weight: 600;
+		color: #717070;
+		font-size: 0.8em;
+		border: 1px solid #eae9e9;
 	}
 }

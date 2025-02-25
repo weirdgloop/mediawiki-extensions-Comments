@@ -96,13 +96,18 @@
 				"App.vue",
 				"CommentsList.vue",
 				"CommentItem.vue",
+				"CommentInput.vue",
 				"actions/RatingAction.vue",
+				"actions/DeleteAction.vue",
+				"actions/LinkAction.vue",
 				{
 					"name": "icons.json",
 					"callback": "MediaWiki\\ResourceLoader\\CodexModule::getIcons",
 					"callbackParam": [
 						"cdxIconUpTriangle",
-						"cdxIconDownTriangle"
+						"cdxIconDownTriangle",
+						"cdxIconTrash",
+						"cdxIconLink"
 					]
 				}
 			],
@@ -120,7 +125,9 @@
 			"messages": [
 				"comments-container-header",
 				"comments-add-comment-placeholder",
-				"comments-rating"
+				"comments-rating",
+				"comments-empty",
+				"comments-continue"
 			],
 			"targets": [
 				"desktop",

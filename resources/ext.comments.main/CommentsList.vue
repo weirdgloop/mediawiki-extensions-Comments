@@ -5,6 +5,19 @@
 			:key="c.id"
 			:comment="c"
 		></comment-item>
+		<button
+			v-if="moreContinue"
+			class="comment-list-footer"
+			@click="loadComments"
+		>
+			{{ $i18n( 'comments-continue' ).text() }}
+		</button>
+		<div
+			v-else-if="$data.initialLoad && !comments.length"
+			class="comment-list-footer"
+		>
+			{{ $i18n( 'comments-empty' ).text() }}
+		</div>
 	</div>
 </template>
 
@@ -27,29 +40,39 @@ module.exports = exports = defineComponent( {
 	},
 	data() {
 		return {
-			hasBeenVisible: false,
+			initialLoad: false,
+			moreContinue: null,
 			comments: []
 		};
 	},
 	methods: {
 		loadComments() {
-			api.get( `/comments/v0/page/${ config.wgArticleId }` )
+			const qsp = new URLSearchParams( { limit: 1 } );
+			if ( this.$data.moreContinue ) {
+				qsp.set( 'continue', this.$data.moreContinue );
+			}
+
+			api.get( `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }` )
 				.done( ( res ) => {
 					const comments = [];
 					for ( const data of res.comments ) {
 						comments.push( new Comment( data ) );
 					}
-					this.$data.comments = comments;
+					this.$data.comments = this.$data.comments.concat( comments );
+					this.$data.moreContinue = res.query.continue;
 				} );
 		}
 	},
 	mounted() {
-		$( window ).on( 'DOMContentLoaded load resize scroll', () => {
-			if ( isElementInView( this.$el ) && !this.$data.hasBeenVisible ) {
-				this.$data.hasBeenVisible = true;
+		const checkVisible = () => {
+			if ( isElementInView( this.$el ) && !this.$data.initialLoad ) {
+				this.$data.initialLoad = true;
 				this.loadComments();
 			}
-		} );
+		};
+
+		checkVisible();
+		$( window ).on( 'DOMContentLoaded load resize scroll', checkVisible );
 	}
 } );
 </script>

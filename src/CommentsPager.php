@@ -9,6 +9,8 @@ use MediaWiki\User\UserIdentity;
 use Title;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IResultWrapper;
+use Wikimedia\Rdbms\SelectQueryBuilder;
+use Wikimedia\Rdbms\UnionQueryBuilder;
 
 /**
  * Helper class for retrieving comments from the database.
@@ -18,6 +20,11 @@ class CommentsPager {
 	 * @var ActorStore
 	 */
 	private ActorStore $actorStore;
+
+	/**
+	 * @var CommentFactory
+	 */
+	private CommentFactory $commentFactory;
 
 	/**
 	 * @var IDatabase
@@ -55,17 +62,22 @@ class CommentsPager {
 	private ?Comment $parent = null;
 
 	/**
-	 * The offset to use in the database query. We'll always retrieve +1 extra row
+	 * The continue offset to use in the database query.
+	 * @var string|null
+	 */
+	private ?string $continue = null;
+
+	/**
+	 * The limit to use in the database query. We'll always retrieve +1 extra row
 	 * so that we know if there are more results or not.
 	 * @var int
 	 */
-	private int $offset = 0;
+	private int $limit = 50;
 
 	/**
-	 * The limit to use in the database query
-	 * @var int
+	 * @var Comment[]
 	 */
-	private int $limit = 50;
+	private array $res = [];
 
 	private const TABLE_NAME = 'com_comment';
 
@@ -85,6 +97,7 @@ class CommentsPager {
 		}
 
 		$this->actorStore = $services->getActorStore();
+		$this->commentFactory = $services->getService( 'Comments.CommentFactory' );
 		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 
 		$this->deletedOnly = !empty( $options['deletedOnly'] );
@@ -93,12 +106,12 @@ class CommentsPager {
 	}
 
 	/**
-	 * Set the offset to use in the database query
-	 * @param int $offset
+	 * Set the continue to use in the database query
+	 * @param string $continue
 	 * @return void
 	 */
-	public function setOffset( $offset ) {
-		$this->offset = $offset;
+	public function setContinue( $continue ) {
+		$this->continue = $continue;
 	}
 
 	/**
@@ -111,10 +124,32 @@ class CommentsPager {
 	}
 
 	/**
-	 * Execute the database query
-	 * @return IResultWrapper
+	 * Returns the timestamp that should be used for continuing this query (pagination).
+	 * Calling `$this->execute()` will also continue the query.
+	 * @return string|null
 	 */
-	public function executeQuery() {
+	public function getContinue() {
+		return $this->continue;
+	}
+
+	/**
+	 * Gets the result of the last query. If the query has not been executed yet, calling this method will do that.
+	 * @return Comment[]
+	 */
+	public function getResult() {
+		if ( !$this->res ) {
+			$this->execute();
+		}
+
+		return $this->res;
+	}
+
+	/**
+	 * Execute the database query.
+	 * After calling this method, the result will be available by calling `$this->getResult()`.
+	 * @return void
+	 */
+	public function execute() {
 		$conds = [
 			'c_page' => $this->targetTitle->getId()
 		];
@@ -122,15 +157,31 @@ class CommentsPager {
 		$opts = [
 			'ORDER BY' => [
 				'c_timestamp DESC'
-			],
-			'LIMIT' => $this->limit + 1,
-			'OFFSET' => $this->offset
+			]
 		];
 
 		if ( $this->includeChildren && !$this->parent ) {
 			$conds[ 'c_parent' ] = null;
 
 			$uqb = $this->db->newUnionQueryBuilder()->all();
+
+			$uqb->add(
+				$this->db->newSelectQueryBuilder()
+					->select( '*' )
+					->from( self::TABLE_NAME )
+					->where( 'c_parent IN ' . $this->db->buildSelectSubquery(
+							self::TABLE_NAME,
+							'c_id',
+							$conds,
+							__METHOD__,
+							$opts
+						) )
+			);
+
+			if ( $this->continue !== null ) {
+				$conds[] = 'c_timestamp < ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+			}
+
 			$uqb->add(
 				$this->db->newSelectQueryBuilder()
 					->select( '*' )
@@ -140,36 +191,57 @@ class CommentsPager {
 							'*',
 							$conds,
 							__METHOD__,
-							$opts
+							$opts + [ 'LIMIT' => $this->limit + 1 ]
 						),
 						'a'
 					),
-			)->add(
-				$this->db->newSelectQueryBuilder()
-					->select( '*' )
-					->from( self::TABLE_NAME )
-					->where( 'c_parent IN ' . $this->db->buildSelectSubquery(
-						self::TABLE_NAME,
-							'c_id',
-							$conds,
-							__METHOD__,
-							$opts
-					) )
 			);
 
-			return $uqb->caller( __METHOD__ )
-				->fetchResultSet();
+			return $this->reallyDoQuery( $uqb->caller( __METHOD__ ) );
 		}
 
 		if ( $this->parent ) {
 			$conds[ 'c_parent' ] = $this->parent->getId();
 		}
 
-		return $this->db->newSelectQueryBuilder()
+		if ( $this->continue !== null ) {
+			$conds[] = 'c_timestamp < ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+		}
+
+		return $this->reallyDoQuery( $this->db->newSelectQueryBuilder()
 			->from( self::TABLE_NAME )
 			->where( $conds )
-			->options( $opts )
+			->options( $opts + [ 'LIMIT' => $this->limit ] )
 			->caller( __METHOD__ )
-			->fetchResultSet();
+		);
+	}
+
+	/**
+	 * @param SelectQueryBuilder|UnionQueryBuilder $builder
+	 * @return void
+	 */
+	private function reallyDoQuery( $builder ) {
+		$res = $builder->fetchResultSet();
+		$this->continue = null;
+
+		$comments = [];
+
+		$parentsSeen = 0;
+		foreach ( $res as $row ) {
+			$c = $this->commentFactory->newFromRow( $row );
+			if ( $row->c_parent === null ) {
+				if ( $parentsSeen === $this->limit ) {
+					// This is the extra row we queried for to work out if there's more rows that can be requested.
+					$this->continue = $row->c_timestamp;
+					continue;
+				} else {
+					$parentsSeen++;
+				}
+			}
+
+			$comments[] = $c;
+		}
+
+		$this->res = $comments;
 	}
 }

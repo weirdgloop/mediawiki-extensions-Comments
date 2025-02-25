@@ -19,7 +19,10 @@
 						<span class="comment-date">{{ date }}</span>
 					</div>
 				</div>
-				<div class="comment-actions"></div>
+				<div class="comment-actions">
+					<delete-action :comment-id="comment.id"></delete-action>
+					<link-action :comment-id="comment.id"></link-action>
+				</div>
 			</div>
 			<div class="comment-content" v-html="comment.html"></div>
 			<div v-if="comment.children.length > 0" class="comment-children">
@@ -37,11 +40,15 @@
 const { defineComponent } = require( 'vue' );
 const Comment = require( './comment.js' );
 const RatingAction = require( './actions/RatingAction.vue' );
+const DeleteAction = require( './actions/DeleteAction.vue' );
+const LinkAction = require( './actions/LinkAction.vue' );
 
 module.exports = exports = defineComponent( {
 	name: 'CommentItem',
 	components: {
-		RatingAction
+		RatingAction,
+		DeleteAction,
+		LinkAction
 	},
 	props: {
 		comment: Comment

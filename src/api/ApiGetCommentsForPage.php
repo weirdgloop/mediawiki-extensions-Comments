@@ -56,28 +56,22 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		$childComments = [];
 
 		$limit = (int)$params[ 'limit' ];
-		$offset = (int)$params[ 'offset' ];
+		$continue = $params[ 'continue' ];
 
 		$pager->setLimit( $limit );
-		$pager->setOffset( $offset );
+		$pager->setContinue( $continue );
+		$res = $pager->getResult();
 
-		$res = $pager->executeQuery();
-		if ( $res->numRows() > 0 ) {
-			$count = 0;
-			foreach ( $res as $row ) {
-				if ( ++$count > $limit ) {
-					break;
-				}
-
-				$comment = $this->commentFactory->newFromRow( $row );
-				if ( $comment->getParent() !== null ) {
-					// If this is a child comment, add it to the child comments array for processing later
-					$childComments[] = $comment;
-				} else {
-					$comments[] = $comment->toArray() + [
+		$continue = $pager->getContinue();
+		foreach ( $res as $comment ) {
+			if ( $comment->getParent() !== null ) {
+				// If this is a child comment, add it to the child comments array for processing later
+				$childComments[] = $comment;
+			} else {
+				$comments[] = $comment->toArray() + [
 						'children' => []
 					];
-				}
+				$continue = $comment->getTimestamp();
 			}
 		}
 
@@ -93,7 +87,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		return $this->getResponseFactory()->createJson( [
 			'query' => [
 				'limit' => $limit,
-				'offset' => $res->key()
+				'continue' => $continue
 			],
 			'comments' => $comments
 		] );
@@ -112,11 +106,11 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				ParamValidator::PARAM_REQUIRED => false,
 				ParamValidator::PARAM_DEFAULT => 50
 			],
-			'offset' => [
+			'continue' => [
 				self::PARAM_SOURCE => 'query',
-				ParamValidator::PARAM_TYPE => 'integer',
+				ParamValidator::PARAM_TYPE => 'string',
 				ParamValidator::PARAM_REQUIRED => false,
-				ParamValidator::PARAM_DEFAULT => 0
+				ParamValidator::PARAM_DEFAULT => null
 			]
 		];
 	}
