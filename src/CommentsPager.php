@@ -8,7 +8,6 @@ use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
 use Title;
 use Wikimedia\Rdbms\IDatabase;
-use Wikimedia\Rdbms\IResultWrapper;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\UnionQueryBuilder;
 
@@ -16,6 +15,13 @@ use Wikimedia\Rdbms\UnionQueryBuilder;
  * Helper class for retrieving comments from the database.
  */
 class CommentsPager {
+	private const TABLE_NAME = 'com_comment';
+
+	public const SORT_DATE_DESC = 'sort_date_desc';
+	public const SORT_DATE_ASC = 'sort_date_asc';
+	public const SORT_RATING_DESC = 'sort_rating_desc';
+	public const SORT_RATING_ASC = 'sort_rating_asc';
+
 	/**
 	 * @var ActorStore
 	 */
@@ -75,17 +81,21 @@ class CommentsPager {
 	private int $limit = 50;
 
 	/**
+	 * @var string
+	 */
+	private string $sortMethod;
+
+	/**
 	 * @var Comment[]
 	 */
 	private array $res = [];
-
-	private const TABLE_NAME = 'com_comment';
 
 	public function __construct(
 		array $options,
 		UserIdentity $targetUser = null,
 		Title $targetTitle = null,
-		Comment $parent = null
+		Comment $parent = null,
+		string $sortMethod = self::SORT_DATE_DESC
 	) {
 		$services = MediaWikiServices::getInstance();
 
@@ -102,11 +112,12 @@ class CommentsPager {
 
 		$this->deletedOnly = !empty( $options['deletedOnly'] );
 		$this->includeDeleted = !empty( $options['includeDeleted'] );
+		$this->sortMethod = $sortMethod;
 		$this->parent = $parent;
 	}
 
 	/**
-	 * Set the continue to use in the database query
+	 * Set the continue to use in the database query.
 	 * @param string $continue
 	 * @return void
 	 */
@@ -133,6 +144,22 @@ class CommentsPager {
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getSortMethod() {
+		return $this->sortMethod;
+	}
+
+	/**
+	 * Set the sort method for the query
+	 * @param string $sortMethod one of the `SORT_*` constants
+	 * @return void
+	 */
+	public function setSortMethod( $sortMethod ) {
+		$this->sortMethod = $sortMethod;
+	}
+
+	/**
 	 * Gets the result of the last query. If the query has not been executed yet, calling this method will do that.
 	 * @return Comment[]
 	 */
@@ -142,6 +169,38 @@ class CommentsPager {
 		}
 
 		return $this->res;
+	}
+
+	/**
+	 * @return string[]|null
+	 */
+	private function getOrderCondition() {
+		switch ( $this->sortMethod ) {
+			case $this::SORT_DATE_DESC:
+				return [ 'c_timestamp DESC' ];
+			case $this::SORT_DATE_ASC:
+				return [ 'c_timestamp ASC' ];
+			case $this::SORT_RATING_DESC:
+				return [ 'c_rating DESC' ];
+			case $this::SORT_RATING_ASC:
+				return [ 'c_rating ASC' ];
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * @return string|null
+	 */
+	private function getOffsetCondition() {
+		switch ( $this->sortMethod ) {
+			case self::SORT_DATE_DESC:
+				return 'c_timestamp <= ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+			case self::SORT_DATE_ASC:
+				return 'c_timestamp >= ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+			default:
+				return null;
+		}
 	}
 
 	/**
@@ -155,9 +214,7 @@ class CommentsPager {
 		];
 
 		$opts = [
-			'ORDER BY' => [
-				'c_timestamp DESC'
-			]
+			'ORDER BY' => $this->getOrderCondition()
 		];
 
 		if ( $this->includeChildren && !$this->parent ) {
@@ -179,7 +236,15 @@ class CommentsPager {
 			);
 
 			if ( $this->continue !== null ) {
-				$conds[] = 'c_timestamp < ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+				$offsetCond = $this->getOffsetCondition();
+				if ( $offsetCond !== null ) {
+					$conds[] = $offsetCond;
+				}
+				if ( !str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+					// For queries without dates, we will revert to using actual query offset,
+					// which is probably slightly expensive for a large number of comments.
+					$opts[ 'OFFSET' ] = $this->continue;
+				}
 			}
 
 			$uqb->add(
@@ -205,7 +270,15 @@ class CommentsPager {
 		}
 
 		if ( $this->continue !== null ) {
-			$conds[] = 'c_timestamp < ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+			$offsetCond = $this->getOffsetCondition();
+			if ( $offsetCond !== null ) {
+				$conds[] = $offsetCond;
+			}
+			if ( !str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+				// For queries without dates, we will revert to using actual query offset,
+				// which is probably slightly expensive for a large number of comments.
+				$opts[ 'OFFSET' ] = $this->continue;
+			}
 		}
 
 		return $this->reallyDoQuery( $this->db->newSelectQueryBuilder()
@@ -222,6 +295,7 @@ class CommentsPager {
 	 */
 	private function reallyDoQuery( $builder ) {
 		$res = $builder->fetchResultSet();
+		$prevContinue = $this->continue;
 		$this->continue = null;
 
 		$comments = [];
@@ -232,7 +306,11 @@ class CommentsPager {
 			if ( $row->c_parent === null ) {
 				if ( $parentsSeen === $this->limit ) {
 					// This is the extra row we queried for to work out if there's more rows that can be requested.
-					$this->continue = $row->c_timestamp;
+					if ( str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+						$this->continue = $row->c_timestamp;
+					} else {
+						$this->continue = $prevContinue + $this->limit;
+					}
 					continue;
 				} else {
 					$parentsSeen++;

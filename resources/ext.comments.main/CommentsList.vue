@@ -38,6 +38,13 @@ module.exports = exports = defineComponent( {
 	components: {
 		CommentItem
 	},
+	props: {
+		sortMethod: {
+			type: String,
+			default: '',
+			required: true
+		}
+	},
 	data() {
 		return {
 			initialLoad: false,
@@ -47,7 +54,7 @@ module.exports = exports = defineComponent( {
 	},
 	methods: {
 		loadComments() {
-			const qsp = new URLSearchParams( { limit: 1 } );
+			const qsp = new URLSearchParams( { limit: 1, sort: this.$props.sortMethod } );
 			if ( this.$data.moreContinue ) {
 				qsp.set( 'continue', this.$data.moreContinue );
 			}
@@ -61,6 +68,17 @@ module.exports = exports = defineComponent( {
 					this.$data.comments = this.$data.comments.concat( comments );
 					this.$data.moreContinue = res.query.continue;
 				} );
+		}
+	},
+	watch: {
+		sortMethod: {
+			immediate: false,
+			handler() {
+				// When the sort method changes, reset the list and make a request again
+				this.$data.comments = [];
+				this.$data.moreContinue = null;
+				this.loadComments();
+			}
 		}
 	},
 	mounted() {

@@ -47,7 +47,8 @@ class ApiGetCommentsForPage extends SimpleHandler {
 			],
 			null,
 			$title,
-			null
+			null,
+			$params[ 'sort' ]
 		);
 
 		/** @var Comment[] $comments */
@@ -71,7 +72,6 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				$comments[] = $comment->toArray() + [
 						'children' => []
 					];
-				$continue = $comment->getTimestamp();
 			}
 		}
 
@@ -111,6 +111,17 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				ParamValidator::PARAM_TYPE => 'string',
 				ParamValidator::PARAM_REQUIRED => false,
 				ParamValidator::PARAM_DEFAULT => null
+			],
+			'sort' => [
+				self::PARAM_SOURCE => 'query',
+				ParamValidator::PARAM_TYPE => [
+					CommentsPager::SORT_RATING_ASC,
+					CommentsPager::SORT_RATING_DESC,
+					CommentsPager::SORT_DATE_ASC,
+					CommentsPager::SORT_DATE_DESC
+				],
+				ParamValidator::PARAM_REQUIRED => false,
+				ParamValidator::PARAM_DEFAULT => CommentsPager::SORT_DATE_DESC
 			]
 		];
 	}
