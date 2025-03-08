@@ -13,10 +13,7 @@
 		"MediaWiki": ">= 1.41.0"
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\Comments\\": "src/",
-		"MediaWiki\\Extension\\Comments\\Api": "src/api",
-		"MediaWiki\\Extension\\Comments\\Models": "src/models",
-		"MediaWiki\\Extension\\Comments\\Specials": "src/specials"
+		"MediaWiki\\Extension\\Comments\\": "src/"
 	},
 	"MessagesDirs": {
 		"Comments": [
