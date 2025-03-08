@@ -19,7 +19,8 @@ class ImportFromJson extends Maintenance {
 		parent::__construct();
 
 		$this->addDescription(
-			"Imports comments into the database from a JSON file."
+			'Imports comments into the database from a JSON file. This is intended for use by Weird Gloop and ' .
+			'not by third parties.'
 		);
 
 		$this->addArg(
@@ -27,10 +28,19 @@ class ImportFromJson extends Maintenance {
 			'JSON file',
 			false
 		);
+
+		$this->addOption(
+			'skip-to',
+			'How many entries to skip of the JSON file, useful for resuming later.',
+			false,
+			true
+		);
 	}
 
 	public function execute() {
 		$this->output( "Reading JSON file...\n" );
+
+		$skipTo = $this->getOption( 'skip-to', 0 );
 
 		if ( $this->hasArg( 0 ) ) {
 			$file = file_get_contents( $this->getArg( 0 ) );
@@ -47,26 +57,33 @@ class ImportFromJson extends Maintenance {
 			$this->fatalError( "Unable to parse JSON file" );
 		}
 
-		$total = count( $file );
-
 		$dbw = $this->getDB( DB_PRIMARY );
 		$services = $this->getServiceContainer();
 		$pf = $services->getParsoidParserFactory();
 		$an = $services->getActorNormalization();
 		$uf = $services->getUserFactory();
-		$titleFactory = $services->getTitleFactory();
+
+		$total = count( $file );
+		$skipped = 0;
 
 		foreach ( $file as $ix => $item ) {
+			if ( $ix < $skipTo ) {
+				continue;
+			}
+
+			$current = $ix + 1;
+
 			// Make sure that this JSON object contains all of the required keys
 			foreach ( self::REQUIRED_KEYS as $k ) {
-				if ( $item[ $k ] === null ) {
+				if ( !array_key_exists( $k, $item ) ) {
 					$this->error( "Skipping item with missing key \"$k\"" );
-					continue;
+					$skipped++;
+					continue 2;
 				}
 			}
 
 			$this->handleCommentImport( $item, $dbw, $pf, $an, $uf );
-			$this->output( "Inserted $ix/$total comments\n" );
+			$this->output( "Inserted $current/$total comments (skipped: $skipped)\n" );
 		}
 	}
 
