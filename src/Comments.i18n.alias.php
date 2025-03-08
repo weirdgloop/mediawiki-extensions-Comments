@@ -6,5 +6,5 @@ $specialPageAliases = [];
  * English
  */
 $specialPageAliases[ 'en' ] = [
-	'Comments' => 'Comments'
+	'Comments' => [ 'Comments' ]
 ];
