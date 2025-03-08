@@ -30,7 +30,8 @@ const CommentItem = require( './CommentItem.vue' );
 const api = new mw.Rest();
 
 const config = mw.config.get( [
-	'wgArticleId'
+	'wgArticleId',
+	'wgComments'
 ] );
 
 module.exports = exports = defineComponent( {
@@ -54,7 +55,10 @@ module.exports = exports = defineComponent( {
 	},
 	methods: {
 		loadComments() {
-			const qsp = new URLSearchParams( { limit: 1, sort: this.$props.sortMethod } );
+			const qsp = new URLSearchParams( {
+				limit: config.wgComments.resultsPerPage,
+				sort: this.$props.sortMethod
+			} );
 			if ( this.$data.moreContinue ) {
 				qsp.set( 'continue', this.$data.moreContinue );
 			}

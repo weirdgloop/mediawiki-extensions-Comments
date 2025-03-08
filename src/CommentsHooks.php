@@ -8,12 +8,14 @@ use MediaWiki\Config\Config;
 use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook;
 use MediaWiki\Output\OutputPage;
+use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
 use Skin;
 
 class CommentsHooks implements
 	LoadExtensionSchemaUpdatesHook,
 	GetAllBlockActionsHook,
-	BeforePageDisplayHook
+	BeforePageDisplayHook,
+	ResourceLoaderGetConfigVarsHook
 {
 	private Config $config;
 
@@ -34,7 +36,7 @@ class CommentsHooks implements
 	}
 
 	/**
-	 * @param $actions
+	 * @param array &$actions
 	 * @return void
 	 */
 	public function onGetAllBlockActions( &$actions ) {
@@ -59,5 +61,18 @@ class CommentsHooks implements
 		}
 
 		$out->addModules( 'ext.comments.main' );
+	}
+
+	/**
+	 * @param array &$vars
+	 * @param string $skin
+	 * @param Config $config
+	 * @return void
+	 */
+	public function onResourceLoaderGetConfigVars( array &$vars, $skin, Config $config ): void {
+		$vars['wgComments'] = [
+			'resultsPerPage' => $config->get( 'CommentsResultsPerPage' ),
+			'readOnly' => $config->get( 'CommentsReadOnly' )
+		];
 	}
 }

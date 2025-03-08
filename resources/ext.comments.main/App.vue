@@ -1,6 +1,6 @@
 <template>
 	<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
-	<comment-input></comment-input>
+	<comment-input v-if="!readOnly"></comment-input>
 	<div class="comment-list-options">
 		<div class="comment-list-option-sort-method">
 			<cdx-field>
@@ -9,7 +9,7 @@
 					:menu-items="sortOptions"
 				></cdx-select>
 				<template #label>
-					Sort by
+					{{ $i18n( 'comments-sort-label' ).text() }}
 				</template>
 			</cdx-field>
 		</div>
@@ -23,13 +23,6 @@ const { CdxSelect, CdxField } = require( '@wikimedia/codex' );
 const CommentInput = require( './CommentInput.vue' );
 const CommentsList = require( './CommentsList.vue' );
 
-const sortOptions = [
-	{ label: 'Newest', value: 'sort_date_desc' },
-	{ label: 'Oldest', value: 'sort_date_asc' },
-	{ label: 'Highest rated', value: 'sort_rating_desc' },
-	{ label: 'Lowest rated', value: 'sort_rating_asc' }
-];
-
 module.exports = exports = defineComponent( {
 	name: 'App',
 	components: {
@@ -39,9 +32,18 @@ module.exports = exports = defineComponent( {
 		CdxField
 	},
 	setup() {
+		const sortOptions = [
+			{ label: mw.message( 'comments-sort-newest' ), value: 'sort_date_desc' },
+			{ label: mw.message( 'comments-sort-oldest' ), value: 'sort_date_asc' },
+			{ label: mw.message( 'comments-sort-highest-rated' ), value: 'sort_rating_desc' },
+			{ label: mw.message( 'comments-sort-lowest-rated' ), value: 'sort_rating_asc' }
+		];
+
+		const readOnly = mw.config.get( 'wgComments' ).readOnly;
 		const sortSelection = ref( sortOptions[ 0 ].value );
 
 		return {
+			readOnly,
 			sortSelection,
 			sortOptions
 		};

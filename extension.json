@@ -27,12 +27,19 @@
 	"config": {
 		"ShowOnMainPage": {
 			"value": false
+		},
+		"ResultsPerPage": {
+			"value": 50
+		},
+		"ReadOnly": {
+			"value": true
 		}
 	},
 	"Hooks": {
 		"LoadExtensionSchemaUpdates": "main",
 		"GetAllBlockActions": "main",
-		"BeforePageDisplay": "main"
+		"BeforePageDisplay": "main",
+		"ResourceLoaderGetConfigVars": "main"
 	},
 	"AvailableRights": [
 		"comments",
@@ -127,7 +134,12 @@
 				"comments-add-comment-placeholder",
 				"comments-rating",
 				"comments-empty",
-				"comments-continue"
+				"comments-continue",
+				"comments-sort-label",
+				"comments-sort-newest",
+				"comments-sort-oldest",
+				"comments-sort-highest-rated",
+				"comments-sort-lowest-rated"
 			],
 			"targets": [
 				"desktop",

@@ -20,7 +20,7 @@
 					</div>
 				</div>
 				<div class="comment-actions">
-					<delete-action :comment-id="comment.id"></delete-action>
+					<delete-action v-if="!readOnly" :comment-id="comment.id"></delete-action>
 					<link-action :comment-id="comment.id"></link-action>
 				</div>
 			</div>
@@ -53,6 +53,13 @@ module.exports = exports = defineComponent( {
 	props: {
 		comment: Comment
 	},
+	setup() {
+		const readOnly = mw.config.get( 'wgComments' ).readOnly;
+
+		return {
+			readOnly
+		};
+	},
 	computed: {
 		rating() {
 			return mw.message( 'comments-rating',
@@ -67,6 +74,6 @@ module.exports = exports = defineComponent( {
 			const title = new mw.Title( this.comment.actor.name, 2 ); // 2 = User
 			return title.getUrl();
 		}
-	}
+	},
 } );
 </script>

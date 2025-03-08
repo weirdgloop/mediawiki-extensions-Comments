@@ -13,5 +13,10 @@
 	"comments-no-js": "Please wait while this container loads. Note: JavaScript must be enabled in your browser.",
 	"comments-rating": "$1 {{PLURAL:$2|vote|votes}}",
 	"comments-empty": "No comments",
-	"comments-continue": "Load more comments"
+	"comments-continue": "Load more comments",
+	"comments-sort-label": "Sort by",
+	"comments-sort-newest": "Newest",
+	"comments-sort-oldest": "Oldest",
+	"comments-sort-highest-rated": "Highest rated",
+	"comments-sort-lowest-rated": "Lowest rated"
 }
