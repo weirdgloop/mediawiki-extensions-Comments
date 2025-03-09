@@ -126,8 +126,8 @@
 				"mediawiki.api",
 				"oojs-ui-core",
 				"oojs-ui-widgets",
-				"ext.veforall.main",
-				"moment"
+				"moment",
+				"ext.comments.ve"
 			],
 			"messages": [
 				"comments-container-header",
@@ -146,6 +146,32 @@
 			"targets": [
 				"desktop",
 				"mobile"
+			]
+		},
+		"ext.comments.ve": {
+			"localBasePath": "resources/ext.comments.ve",
+			"remoteExtPath": "Comments/resources/ext.comments.ve",
+			"packageFiles": [
+				"index.js",
+				"consts.js",
+				"CommentTarget.js",
+				"CommentEditor.js"
+			],
+			"dependencies": [
+				"ext.visualEditor.core.desktop",
+				"ext.visualEditor.desktopTarget",
+				"ext.visualEditor.core",
+				"ext.visualEditor.data",
+				"ext.visualEditor.icons",
+				"ext.visualEditor.mediawiki",
+				"ext.visualEditor.mwextensions.desktop",
+				"ext.visualEditor.mwimage",
+				"ext.visualEditor.mwlink",
+				"ext.visualEditor.mwtransclusion",
+				"oojs-ui.styles.icons-editing-advanced"
+			],
+			"targets": [
+				"desktop"
 			]
 		}
 	},

@@ -46,8 +46,8 @@ module.exports = exports = defineComponent( {
 			$input.val( this.$props.value );
 		}
 
-		$input.applyVisualEditor();
-		$input.trigger( 'focus' );
+		// Create the VE instance for this editor
+		const ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 	}
 } );
 </script>
