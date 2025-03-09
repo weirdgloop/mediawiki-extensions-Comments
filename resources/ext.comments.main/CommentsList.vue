@@ -24,8 +24,9 @@
 <script>
 const { defineComponent } = require( 'vue' );
 const { isElementInView } = require( './util.js' );
+const store = require( './store.js' );
 const Comment = require( './comment.js' );
-const CommentItem = require( './CommentItem.vue' );
+const CommentItem = require( './comments/CommentItem.vue' );
 
 const api = new mw.Rest();
 
@@ -48,6 +49,7 @@ module.exports = exports = defineComponent( {
 	},
 	data() {
 		return {
+			store,
 			initialLoad: false,
 			moreContinue: null,
 			comments: []
@@ -57,7 +59,7 @@ module.exports = exports = defineComponent( {
 		loadComments() {
 			const qsp = new URLSearchParams( {
 				limit: config.wgComments.resultsPerPage,
-				sort: this.$props.sortMethod
+				sort: this.$data.store.sortMethod
 			} );
 			if ( this.$data.moreContinue ) {
 				qsp.set( 'continue', this.$data.moreContinue );
@@ -75,7 +77,7 @@ module.exports = exports = defineComponent( {
 		}
 	},
 	watch: {
-		sortMethod: {
+		'store.sortMethod': {
 			immediate: false,
 			handler() {
 				// When the sort method changes, reset the list and make a request again

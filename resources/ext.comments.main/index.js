@@ -11,9 +11,8 @@ function initApp() {
 	);
 
 	// MediaWiki-specific function
-	Vue.createMwApp(
-		App
-	).mount( '#ext-comments-container' );
+	Vue.createMwApp( App )
+		.mount( '#ext-comments-container' );
 }
 
 $( () => {

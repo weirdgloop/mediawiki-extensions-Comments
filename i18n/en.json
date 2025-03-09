@@ -7,7 +7,6 @@
 	"comments-desc": "Embeds comments under wiki pages",
 	"ipb-action-comments": "Posting comments on wiki pages",
 	"comments-container-header": "Comments",
-	"comments-add-comment-placeholder": "Start typing a comment...",
 	"right-comments": "Post comments on a wiki page",
 	"comments": "Comments",
 	"comments-no-js": "Please wait while this container loads. Note: JavaScript must be enabled in your browser.",
@@ -18,5 +17,7 @@
 	"comments-sort-newest": "Newest",
 	"comments-sort-oldest": "Oldest",
 	"comments-sort-highest-rated": "Highest rated",
-	"comments-sort-lowest-rated": "Lowest rated"
+	"comments-sort-lowest-rated": "Lowest rated",
+	"comments-post-placeholder": "Add a comment...",
+	"comments-post-submit": "Post comment"
 }

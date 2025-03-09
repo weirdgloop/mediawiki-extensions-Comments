@@ -29,7 +29,7 @@
 			"value": 50
 		},
 		"ReadOnly": {
-			"value": true
+			"value": false
 		}
 	},
 	"Hooks": {
@@ -96,11 +96,13 @@
 			"packageFiles": [
 				"index.js",
 				"util.js",
+				"store.js",
 				"comment.js",
 				"App.vue",
 				"CommentsList.vue",
-				"CommentItem.vue",
-				"CommentInput.vue",
+				"comments/CommentItem.vue",
+				"comments/NewCommentInput.vue",
+				"actions/RootActionHeader.vue",
 				"actions/RatingAction.vue",
 				"actions/DeleteAction.vue",
 				"actions/LinkAction.vue",
@@ -111,7 +113,8 @@
 						"cdxIconUpTriangle",
 						"cdxIconDownTriangle",
 						"cdxIconTrash",
-						"cdxIconLink"
+						"cdxIconLink",
+						"cdxIconSpeechBubbleAdd"
 					]
 				}
 			],
@@ -128,7 +131,6 @@
 			],
 			"messages": [
 				"comments-container-header",
-				"comments-add-comment-placeholder",
 				"comments-rating",
 				"comments-empty",
 				"comments-continue",
@@ -136,7 +138,10 @@
 				"comments-sort-newest",
 				"comments-sort-oldest",
 				"comments-sort-highest-rated",
-				"comments-sort-lowest-rated"
+				"comments-sort-lowest-rated",
+				"comments-post-placeholder",
+				"comments-post-submit",
+				"cancel"
 			],
 			"targets": [
 				"desktop",

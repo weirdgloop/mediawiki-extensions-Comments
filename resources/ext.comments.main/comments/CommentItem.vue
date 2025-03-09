@@ -38,10 +38,10 @@
 
 <script>
 const { defineComponent } = require( 'vue' );
-const Comment = require( './comment.js' );
-const RatingAction = require( './actions/RatingAction.vue' );
-const DeleteAction = require( './actions/DeleteAction.vue' );
-const LinkAction = require( './actions/LinkAction.vue' );
+const Comment = require( '../comment.js' );
+const RatingAction = require( '../actions/RatingAction.vue' );
+const DeleteAction = require( '../actions/DeleteAction.vue' );
+const LinkAction = require( '../actions/LinkAction.vue' );
 
 module.exports = exports = defineComponent( {
 	name: 'CommentItem',
