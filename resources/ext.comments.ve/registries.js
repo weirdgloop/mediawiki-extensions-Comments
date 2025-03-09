@@ -21,9 +21,17 @@ function importRegistry( parent, child ) {
 const sequenceRegistry = new ve.ui.SequenceRegistry();
 importRegistry( ve.ui.sequenceRegistry, sequenceRegistry );
 
+const commandRegistry = new ve.ui.CommandRegistry();
+importRegistry( ve.ui.commandRegistry, commandRegistry );
+
 // Disable headings 1-6, as these should not appear in the context of a comment
 sequenceRegistry.unregister( 'wikitextHeading' );
 
+// Override the wikitext warning message to our own message
+commandRegistry.unregister( 'mwWikitextWarning' );
+commandRegistry.register( new mw.commentsExt.ve.MWWikitextWarningCommand() );
+
 module.exports = {
-	sequenceRegistry
+	sequenceRegistry,
+	commandRegistry
 }

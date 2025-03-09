@@ -9,5 +9,6 @@
 mw.commentsExt = mw.commentsExt || {};
 mw.commentsExt.ve = mw.commentsExt.ve || {};
 
+require( './MWWikitextWarningCommand.js' );
 require( './CommentTarget.js' )
 require( './CommentEditor.js' );

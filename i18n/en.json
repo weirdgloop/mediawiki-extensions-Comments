@@ -19,5 +19,6 @@
 	"comments-sort-highest-rated": "Highest rated",
 	"comments-sort-lowest-rated": "Lowest rated",
 	"comments-post-placeholder": "Add a comment...",
-	"comments-post-submit": "Post comment"
+	"comments-post-submit": "Post comment",
+	"comments-visualeditor-wikitext-warning": "Comments do not support manually inserting wikitext."
 }

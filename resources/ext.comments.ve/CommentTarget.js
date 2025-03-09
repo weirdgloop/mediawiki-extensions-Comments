@@ -136,7 +136,8 @@ const registries = require( './registries.js' );
 
 	mw.commentsExt.ve.Target.prototype.getSurfaceConfig = function ( config ) {
 		return mw.commentsExt.ve.Target.super.prototype.getSurfaceConfig.call( this, ve.extendObject( {
-			sequenceRegistry: registries.sequenceRegistry
+			sequenceRegistry: registries.sequenceRegistry,
+			commandRegistry: registries.commandRegistry
 		}, config ) )
 	}
 
