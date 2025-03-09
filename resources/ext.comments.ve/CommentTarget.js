@@ -1,4 +1,5 @@
 const { TOOLBAR_CONFIG } = require( './consts.js' );
+const registries = require( './registries.js' );
 
 ( function ( mw, OO, ve ) {
 	'use strict';
@@ -132,6 +133,12 @@ const { TOOLBAR_CONFIG } = require( './consts.js' );
 			view.getDocument().setDir( dir );
 		}
 	};
+
+	mw.commentsExt.ve.Target.prototype.getSurfaceConfig = function ( config ) {
+		return mw.commentsExt.ve.Target.super.prototype.getSurfaceConfig.call( this, ve.extendObject( {
+			sequenceRegistry: registries.sequenceRegistry
+		}, config ) )
+	}
 
 	ve.init.mw.targetFactory.register( mw.commentsExt.ve.Target );
 

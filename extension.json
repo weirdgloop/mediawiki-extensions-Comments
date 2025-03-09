@@ -153,6 +153,7 @@
 			"remoteExtPath": "Comments/resources/ext.comments.ve",
 			"packageFiles": [
 				"index.js",
+				"registries.js",
 				"consts.js",
 				"CommentTarget.js",
 				"CommentEditor.js"
