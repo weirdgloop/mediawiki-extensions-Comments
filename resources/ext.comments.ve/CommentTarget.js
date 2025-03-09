@@ -62,8 +62,7 @@ const registries = require( './registries.js' );
 	 * @param {string} content text to initiate content, in html format
 	 */
 	mw.commentsExt.ve.Target.prototype.createWithHtmlContent = function ( content ) {
-		var target = this,
-			$focusedElement = $( ':focus' );
+		var target = this;
 
 		this.addSurface(
 			ve.dm.converter.getModelFromDom(
@@ -77,10 +76,11 @@ const registries = require( './registries.js' );
 			.removeClass( 'oo-ui-texture-pending' ).prop( 'disabled', false );
 
 		this.setDir();
-		// focus VE instance if textarea had focus
-		if ( $focusedElement.length && this.$node.is( $focusedElement ) ) {
-			this.getSurface().getView().focus();
-		}
+
+		target.once( 'surfaceReady', function () {
+			// Focus the VE surface when it is ready
+			target.getSurface().getView().focus();
+		} );
 
 		target.getToolbar().onWindowResize();
 		target.onToolbarResize();

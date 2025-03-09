@@ -37,6 +37,7 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
+			ve: null
 		};
 	},
 	mounted() {
@@ -47,7 +48,7 @@ module.exports = exports = defineComponent( {
 		}
 
 		// Create the VE instance for this editor
-		const ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
+		this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 	}
 } );
 </script>
