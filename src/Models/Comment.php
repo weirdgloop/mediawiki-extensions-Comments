@@ -349,7 +349,7 @@ class Comment {
 			'c_page' => $this->pageId,
 			'c_actor' => $this->actorId,
 			'c_parent' => $this->parent->id,
-			'c_timestamp' => $this->timestamp,
+			'c_timestamp' => wfTimestamp( TS_MW, $this->timestamp ),
 			'c_deleted' => (int)$this->deleted,
 			'c_rating' => $this->rating,
 			'c_html' => $this->html,

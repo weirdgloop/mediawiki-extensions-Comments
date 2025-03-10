@@ -181,9 +181,9 @@ class CommentsPager {
 			case $this::SORT_DATE_ASC:
 				return [ 'c_timestamp ASC' ];
 			case $this::SORT_RATING_DESC:
-				return [ 'c_rating DESC' ];
+				return [ 'c_rating DESC, c_timestamp DESC' ];
 			case $this::SORT_RATING_ASC:
-				return [ 'c_rating ASC' ];
+				return [ 'c_rating ASC, c_timestamp DESC' ];
 			default:
 				return null;
 		}

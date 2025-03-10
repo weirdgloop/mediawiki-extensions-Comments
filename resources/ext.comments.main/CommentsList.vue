@@ -80,7 +80,7 @@ module.exports = exports = defineComponent( {
 			immediate: false,
 			handler() {
 				// When the sort method changes, reset the list and make a request again
-				this.$data.comments = [];
+				this.$data.store.comments = [];
 				this.$data.moreContinue = null;
 				this.loadComments();
 			}
