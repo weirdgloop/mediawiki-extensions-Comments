@@ -2,11 +2,7 @@ const { reactive } = require( 'vue' );
 
 const store = reactive( {
 	comments: [],
-	sortMethod: 'sort_rating_desc',
-	isWritingTopLevelComment: false,
-	toggleWritingTopLevelComment() {
-		this.isWritingTopLevelComment = !this.isWritingTopLevelComment
-	}
+	sortMethod: 'sort_rating_desc'
 } )
 
 module.exports = store;

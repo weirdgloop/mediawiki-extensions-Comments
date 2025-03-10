@@ -1,18 +1,7 @@
 <template>
 	<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
 	<root-action-header></root-action-header>
-	<div class="comment-top-level-input">
-		<button
-			v-if="!store.isWritingTopLevelComment"
-			class="comment-top-level-input-placeholder"
-			@click="store.toggleWritingTopLevelComment()"
-		>
-			{{ $i18n( 'comments-post-placeholder' ).text() }}
-		</button>
-		<div v-else>
-			<new-comment-input></new-comment-input>
-		</div>
-	</div>
+	<new-comment-input></new-comment-input>
 	<comments-list></comments-list>
 </template>
 

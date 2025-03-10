@@ -30,8 +30,10 @@
 					v-for="c in comment.children"
 					:key="c.id"
 					:comment="c"
+					:parent-id="comment.id"
 				></comment-item>
 			</div>
+			<new-comment-input v-if="!parentId" :parent-id="comment.id"></new-comment-input>
 		</div>
 	</div>
 </template>
@@ -42,16 +44,23 @@ const Comment = require( '../comment.js' );
 const RatingAction = require( '../actions/RatingAction.vue' );
 const DeleteAction = require( '../actions/DeleteAction.vue' );
 const LinkAction = require( '../actions/LinkAction.vue' );
+const NewCommentInput = require( '../comments/NewCommentInput.vue' );
 
 module.exports = exports = defineComponent( {
 	name: 'CommentItem',
 	components: {
 		RatingAction,
 		DeleteAction,
-		LinkAction
+		LinkAction,
+		NewCommentInput
 	},
 	props: {
-		comment: Comment
+		comment: Comment,
+		parentId: {
+			type: Number,
+			default: null,
+			required: false
+		}
 	},
 	setup() {
 		const readOnly = mw.config.get( 'wgComments' ).readOnly;

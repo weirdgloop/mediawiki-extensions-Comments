@@ -142,8 +142,10 @@
 				"comments-sort-oldest",
 				"comments-sort-highest-rated",
 				"comments-sort-lowest-rated",
-				"comments-post-placeholder",
-				"comments-post-submit",
+				"comments-post-placeholder-top-level",
+				"comments-post-placeholder-child",
+				"comments-post-submit-top-level",
+				"comments-post-submit-child",
 				"cancel"
 			],
 			"targets": [

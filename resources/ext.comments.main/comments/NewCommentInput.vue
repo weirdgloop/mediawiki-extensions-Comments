@@ -1,18 +1,29 @@
 <template>
 	<div class="comment-input-container">
-		<div class="ve-area-wrapper">
-			<textarea
-				ref="input"
-				rows="5"
-			></textarea>
-		</div>
-		<div class="comment-input-actions">
-			<cdx-button action="progressive" weight="primary" @click="submitComment">
-				{{ $i18n( 'comments-post-submit' ).text() }}
-			</cdx-button>
-			<cdx-button action="destructive" @click="store.toggleWritingTopLevelComment()">
-				{{ $i18n( 'cancel' ).text() }}
-			</cdx-button>
+		<button
+			v-show="!isWritingComment"
+			class="comment-input-placeholder"
+			@click="isWritingComment = true"
+		>
+			<span v-if="isTopLevel">{{ $i18n( 'comments-post-placeholder-top-level' ).text() }}</span>
+			<span v-else>{{ $i18n( 'comments-post-placeholder-child' ).text() }}</span>
+		</button>
+		<div v-show="isWritingComment">
+			<div class="ve-area-wrapper">
+				<textarea
+					ref="input"
+					rows="5"
+				></textarea>
+			</div>
+			<div class="comment-input-actions">
+				<cdx-button action="progressive" weight="primary" @click="submitComment">
+					<span v-if="isTopLevel">{{ $i18n( 'comments-post-submit-top-level' ).text() }}</span>
+					<span v-else>{{ $i18n( 'comments-post-submit-child' ).text() }}</span>
+				</cdx-button>
+				<cdx-button action="destructive" @click="isWritingComment = false">
+					{{ $i18n( 'cancel' ).text() }}
+				</cdx-button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -40,11 +51,6 @@ module.exports = exports = defineComponent( {
 			default: '',
 			required: false
 		},
-		commentId: {
-			type: Number,
-			default: null,
-			required: false
-		},
 		parentId: {
 			type: Number,
 			default: null,
@@ -57,46 +63,52 @@ module.exports = exports = defineComponent( {
 
 			// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
 			// which will sanitize it before saving it in the database.
-
-			if ( this.$props.commentId !== null ) {
-				// Editing an existing comment
-			} else {
-				// Creating a new comment
-				api.post( '/comments/v0/comment', {
-					pageid: config.wgArticleId,
-					parentid: this.$props.parentId,
-					html: html
-				} ).then( ( data ) => {
-					this.$data.store.comments.unshift( new Comment( data.comment ) );
-					store.toggleWritingTopLevelComment();
-				} ).fail( ( _, result ) => {
-					if ( result.xhr.responseJSON ) {
-						mw.notify( result.xhr.responseJSON.message, { type: 'error', tag: 'post-comment-error' } );
-					} else {
-						mw.notify( 'There was a problem. Please try again.', {
-							type: 'error',
-							tag: 'post-comment-error'
-						} )
-					}
-				} )
-			}
+			api.post( '/comments/v0/comment', {
+				pageid: config.wgArticleId,
+				parentid: this.$props.parentId,
+				html: html
+			} ).then( ( data ) => {
+				this.$data.store.comments.unshift( new Comment( data.comment ) );
+				this.$data.isWritingComment = false;
+			} ).fail( ( _, result ) => {
+				if ( result.xhr.responseJSON ) {
+					mw.notify( result.xhr.responseJSON.message, { type: 'error', tag: 'post-comment-error' } );
+				} else {
+					mw.notify( 'There was a problem. Please try again.', {
+						type: 'error',
+						tag: 'post-comment-error'
+					} )
+				}
+			} )
 		}
 	},
 	data() {
 		return {
 			store,
-			ve: null
+			ve: null,
+			isWritingComment: false
 		};
 	},
-	mounted() {
-		const $input = $( this.$refs.input );
+	watch: {
+		isWritingComment( val ) {
+			if ( val === true && this.$data.ve === null ) {
+				const $input = $( this.$refs.input );
 
-		if ( this.$props.value !== '' ) {
-			$input.val( this.$props.value );
+				if ( this.$props.value !== '' ) {
+					$input.val( this.$props.value );
+				}
+
+				// Create the VE instance for this editor
+				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
+			} else if ( val === true ) {
+				this.$data.ve.target.getSurface().getView().focus();
+			}
 		}
-
-		// Create the VE instance for this editor
-		this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
+	},
+	computed: {
+		isTopLevel() {
+			return this.$props.parentId === null
+		}
 	}
 } );
 </script>
