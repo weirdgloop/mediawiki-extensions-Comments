@@ -3,12 +3,11 @@
 namespace MediaWiki\Extension\Comments\Models;
 
 use InvalidArgumentException;
-use ManualLogEntry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\UserIdentity;
 use ParserOptions;
-use Wikimedia\Parsoid\Ext\ParsoidExtensionAPI;
+use WikitextContent;
 
 class Comment {
 	/** @var int */
@@ -48,7 +47,7 @@ class Comment {
 	 * @internal
 	 */
 	public function __construct() {
-		$this->timestamp = wfTimestampNow();
+		$this->timestamp = wfTimestamp( TS_ISO_8601 );
 	}
 
 	/**
@@ -183,14 +182,17 @@ class Comment {
 	}
 
 	/**
-	 * Sets the HTML for this comment. This shouldn't be called manually, instead call `Comment::reparse`.
+	 * Sets the HTML for this comment.
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param string $html
 	 * @return Comment
 	 */
-	public function setHtml( $html ) {
+	public function setHtml( $html, $parse = true ) {
 		$this->html = $html;
+		if ( $parse === true ) {
+			$this->reparse( true );
+		}
 		return $this;
 	}
 
@@ -214,7 +216,7 @@ class Comment {
 	public function setWikitext( $text, $parse = true ) {
 		$this->wikitext = $text;
 		if ( $parse === true ) {
-			$this->reparse();
+			$this->reparse( false );
 		}
 		return $this;
 	}
@@ -236,7 +238,7 @@ class Comment {
 	 * @return $this
 	 */
 	public function setTimestamp( $ts ) {
-		$this->timestamp = $ts;
+		$this->timestamp = wfTimestamp( TS_ISO_8601, $ts );
 		return $this;
 	}
 
@@ -267,23 +269,48 @@ class Comment {
 	}
 
 	/**
-	 * Parse the wikitext and sets the HTML to the output. For convenience, this method also returns the HTML.
+	 * Parse the wikitext and sets the output as appropriate. For convenience, this method also returns the output.
 	 *
-	 * This method should typically only be called once: when the wikitext is changed. Re-parsing the comment
+	 * This method should typically only be called once when the comment is changed. Re-parsing the comment
 	 * on every page view is expensive and unnecessary.
+	 *
+	 * @param bool $fromHtml - whether to use $this->html to
 	 * @return string
 	 */
-	public function reparse() {
-		if ( !$this->wikitext ) {
-			throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
+	public function reparse( $fromHtml = false ) {
+		if ( $fromHtml ) {
+			if ( !$this->html ) {
+				throw new InvalidArgumentException( 'No HTML provided; the comment could not be parsed.' );
+			}
+
+			$transform = MediaWikiServices::getInstance()->getHtmlTransformFactory()
+				->getHtmlToContentTransform( $this->html, $this->title );
+
+			$transform->setOptions( [
+				'contentmodel' => CONTENT_MODEL_WIKITEXT,
+				'offsetType' => 'byte'
+			] );
+
+			$content = $transform->htmlToContent();
+			if ( !$content instanceof WikitextContent ) {
+				// TODO better exception class
+				throw new InvalidArgumentException( 'Unable to convert to wikitext' );
+			}
+
+			$this->wikitext = $content->getText();
+			return $this->wikitext;
+		} else {
+			if ( !$this->wikitext ) {
+				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
+			}
+
+			$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
+			$parserOpts = $this->actor ? ParserOptions::newFromUser( $this->actor ) : ParserOptions::newFromAnon();
+			$parserOutput = $parser->parse( $this->wikitext, $this->title, $parserOpts );
+
+			$this->html = $parserOutput->getText();
+			return $this->html;
 		}
-
-		$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
-		$parserOpts = $this->actor ? ParserOptions::newFromUser( $this->actor ) : ParserOptions::newFromAnon();
-		$parserOutput = $parser->parse( $this->wikitext, $this->title, $parserOpts );
-
-		$this->html = $parserOutput->getText();
-		return $this->html;
 	}
 
 	/**

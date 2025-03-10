@@ -38,7 +38,11 @@ class ApiPostComment extends CommentApiHandler {
 			throw new HttpException( "Page with ID $pageid does not exist", 400 );
 		}
 
-		$text = (string)$body[ 'text' ];
+		$html = trim( (string)$body[ 'html' ] );
+		if ( !$html ) {
+			throw new HttpException( 'Comment cannot be empty', 400 );
+		}
+
 		$parentId = (int)$body[ 'parentid' ];
 
 		$parent = null;
@@ -58,7 +62,7 @@ class ApiPostComment extends CommentApiHandler {
 			->setTitle( $page )
 			->setUser( $this->getAuthority()->getUser() )
 			->setParent( $parent )
-			->setWikitext( $text );
+			->setHtml( $html );
 
 		$comment->save();
 
@@ -89,7 +93,7 @@ class ApiPostComment extends CommentApiHandler {
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => false
 			],
-			'text' => [
+			'html' => [
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'string',
 				ParamValidator::PARAM_REQUIRED => true

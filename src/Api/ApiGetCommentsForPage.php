@@ -70,8 +70,8 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				$childComments[] = $comment;
 			} else {
 				$comments[] = $comment->toArray() + [
-						'children' => []
-					];
+					'children' => []
+				];
 			}
 		}
 

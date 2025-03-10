@@ -1,7 +1,7 @@
 <template>
 	<div class="ext-comments-comments-list">
 		<comment-item
-			v-for="c in comments"
+			v-for="c in store.comments"
 			:key="c.id"
 			:comment="c"
 		></comment-item>
@@ -13,7 +13,7 @@
 			{{ $i18n( 'comments-continue' ).text() }}
 		</button>
 		<div
-			v-else-if="$data.initialLoad && !comments.length"
+			v-else-if="$data.initialLoad && !store.comments.length"
 			class="comment-list-footer"
 		>
 			{{ $i18n( 'comments-empty' ).text() }}
@@ -51,8 +51,7 @@ module.exports = exports = defineComponent( {
 		return {
 			store,
 			initialLoad: false,
-			moreContinue: null,
-			comments: []
+			moreContinue: null
 		};
 	},
 	methods: {
@@ -71,7 +70,7 @@ module.exports = exports = defineComponent( {
 					for ( const data of res.comments ) {
 						comments.push( new Comment( data ) );
 					}
-					this.$data.comments = this.$data.comments.concat( comments );
+					this.$data.store.comments = this.$data.store.comments.concat( comments );
 					this.$data.moreContinue = res.query.continue;
 				} );
 		}
