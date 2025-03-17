@@ -45,7 +45,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 			[
 				'includeDeleted' => $showDeleted
 			],
-			null,
+			$this->getAuthority()->getUser(),
 			$title,
 			null,
 			$params[ 'sort' ]
@@ -64,22 +64,25 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		$res = $pager->getResult();
 
 		$continue = $pager->getContinue();
-		foreach ( $res as $comment ) {
-			if ( $comment->getParent() !== null ) {
+		foreach ( $res as $r ) {
+			if ( $r['c']->getParent() !== null ) {
 				// If this is a child comment, add it to the child comments array for processing later
-				$childComments[] = $comment;
+				$childComments[] = $r;
 			} else {
-				$comments[] = $comment->toArray() + [
-					'children' => []
+				$comments[] = $r['c']->toArray() + [
+					'children' => [],
+					'userRating' => $r['ur']
 				];
 			}
 		}
 
 		// Process all the child comments, nesting them under their parents
 		foreach ( $childComments as $child ) {
-			foreach ( $comments as $index => $comment ) {
-				if ( $comment[ 'id' ] === $child->getParent()->getId() ) {
-					$comments[ $index ][ 'children' ][] = $child->toArray();
+			foreach ( $comments as $index => $topLevelComment ) {
+				if ( $topLevelComment[ 'id' ] === $child['c']->getParent()->getId() ) {
+					$comments[ $index ][ 'children' ][] = $child['c']->toArray() + [
+						'userRating' => $child['ur']
+					];
 				}
 			}
 		}

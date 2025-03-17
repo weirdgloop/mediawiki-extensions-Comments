@@ -1,6 +1,6 @@
 <template>
 	<div class="ext-comments-comment-item">
-		<rating-action :comment-id="comment.id"></rating-action>
+		<rating-action :comment="comment"></rating-action>
 		<div class="comment-body">
 			<div class="comment-header">
 				<div class="comment-author-wrapper">
@@ -20,7 +20,7 @@
 					</div>
 				</div>
 				<div class="comment-actions">
-					<delete-action v-if="!readOnly" :comment-id="comment.id"></delete-action>
+					<delete-action v-if="!store.readOnly" :comment-id="comment.id"></delete-action>
 					<link-action :comment-id="comment.id"></link-action>
 				</div>
 			</div>
@@ -40,6 +40,7 @@
 
 <script>
 const { defineComponent } = require( 'vue' );
+const store = require( '../store.js' );
 const Comment = require( '../comment.js' );
 const RatingAction = require( '../actions/RatingAction.vue' );
 const DeleteAction = require( '../actions/DeleteAction.vue' );
@@ -62,11 +63,9 @@ module.exports = exports = defineComponent( {
 			required: false
 		}
 	},
-	setup() {
-		const readOnly = mw.config.get( 'wgComments' ).readOnly;
-
+	data() {
 		return {
-			readOnly
+			store
 		};
 	},
 	computed: {

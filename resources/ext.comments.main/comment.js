@@ -8,6 +8,7 @@ class Comment {
 		this.id = data.id || null;
 		this.deleted = data.deleted !== null ? data.deleted : false;
 		this.rating = data.rating || 0;
+		this.userRating = data.userRating || 0;
 		this.html = data.html || '';
 		this.wikitext = data.wikitext || '';
 		this.actor = data.actor || {};

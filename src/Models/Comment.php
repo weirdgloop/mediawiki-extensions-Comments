@@ -5,11 +5,16 @@ namespace MediaWiki\Extension\Comments\Models;
 use InvalidArgumentException;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
+use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
 use ParserOptions;
+use stdClass;
+use Wikimedia\Rdbms\IDatabase;
 use WikitextContent;
 
 class Comment {
+	public const TABLE_NAME = 'com_comment';
+
 	/** @var int */
 	private $id;
 
@@ -43,11 +48,21 @@ class Comment {
 	/** @var string */
 	private $wikitext;
 
+	/** @var IDatabase */
+	private $dbw;
+
+	/** @var ActorStore */
+	private $actorStore;
+
 	/**
 	 * @internal
 	 */
 	public function __construct() {
 		$this->timestamp = wfTimestamp( TS_ISO_8601 );
+
+		$services = MediaWikiServices::getInstance();
+		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
+		$this->actorStore = $services->getActorStore();
 	}
 
 	/**
@@ -105,9 +120,7 @@ class Comment {
 			return $this->actor;
 		}
 
-		$services = MediaWikiServices::getInstance();
-		$dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-		$this->actor = $services->getActorStore()->getActorById( $this->actorId, $dbw );
+		$this->actor = $this->actorStore->getActorById( $this->actorId, $this->dbw );
 		return $this->actor;
 	}
 
@@ -120,12 +133,9 @@ class Comment {
 	 * @return Comment
 	 */
 	public function setUser( $user, $actorId = null ) {
-		$services = MediaWikiServices::getInstance();
-		$dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-
 		$this->actor = $user;
 		if ( !$actorId ) {
-			$this->actorId = $services->getActorStore()->findActorId( $user, $dbw );
+			$this->actorId = $this->actorStore->findActorId( $user, $this->dbw );
 		}
 		return $this;
 	}
@@ -243,7 +253,7 @@ class Comment {
 	}
 
 	/**
-	 * The rating for the comment.
+	 * The overall rating for the comment.
 	 *
 	 * This is not necessarily equivalent to a SUM() of all CommentRating objects
 	 * associated with this comment, and is instead used as a quick lookup,
@@ -256,7 +266,77 @@ class Comment {
 	}
 
 	/**
-	 * Sets the rating for this comment.
+	 * Gets the CommentRating object for a specific user. If the user has not rated this comment, then this method will
+	 * return null.
+	 *
+	 * @param UserIdentity $user
+	 * @return CommentRating
+	 */
+	public function getRatingForUser( $user ) {
+		return CommentRating::fetchByCommentAndUser( $this->id, $user );
+	}
+
+	/**
+	 * Sets a rating for a particular user.
+	 *
+	 * @param $user UserIdentity
+	 * @param $rating int an integer matching `-1`, `0`, or `1`
+	 * @return CommentRating
+	 */
+	public function setRatingForUser( $user, $rating ) {
+		$obj = new CommentRating();
+		$obj->setComment( $this )
+			->setActor( $user )
+			->setRating( $rating )
+			->save();
+
+		return $obj;
+	}
+
+	/**
+	 * Increments the current rating count for the comment. This method will update the increment the current live
+	 * value in the database, reloading this Comment object with the updated value.
+	 *
+	 * This method should ONLY be called on comments that already exist in the database.
+	 * @return void
+	 */
+	public function incrementRatingCount() {
+		$this->dbw->newUpdateQueryBuilder()
+			->table( $this::TABLE_NAME )
+			->set( [ 'c_rating=c_rating+' . 1 ] )
+			->where( [ 'c_id' => $this->id ] )
+			->caller( __METHOD__ )->execute();
+
+		$this->rating = (int)$this->dbw->newSelectQueryBuilder()
+			->select( 'c_rating' )
+			->table( $this::TABLE_NAME )
+			->where( [ 'c_id' => $this->id ] )
+			->caller( __METHOD__ )->fetchField();
+	}
+
+	/**
+	 * Decrement the current rating count for the comment. This method will update the decrement the current live
+	 * value in the database, reloading this Comment object with the updated value.
+	 *
+	 * This method should ONLY be called on comments that already exist in the database.
+	 * @return void
+	 */
+	public function decrementRatingCount() {
+		$this->dbw->newUpdateQueryBuilder()
+			->table( $this::TABLE_NAME )
+			->set( [ 'c_rating=c_rating-' . 1 ] )
+			->where( [ 'c_id' => $this->id ] )
+			->caller( __METHOD__ )->execute();
+
+		$this->rating = (int)$this->dbw->newSelectQueryBuilder()
+			->select( 'c_rating' )
+			->table( $this::TABLE_NAME )
+			->where( [ 'c_id' => $this->id ] )
+			->caller( __METHOD__ )->fetchField();
+	}
+
+	/**
+	 * Sets the rating for this comment. This should not typically be called manually.
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 *
@@ -314,37 +394,10 @@ class Comment {
 	}
 
 	/**
-	 * @param UserIdentity|int $actor
-	 * @return
-	 */
-	public function getActorRating( $actor ) {
-		$services = MediaWikiServices::getInstance();
-		$dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-
-		if ( $actor instanceof UserIdentity ) {
-			$actor = $services->getActorStore()->findActorId( $actor, $dbw );
-		}
-
-		$row = $dbw->newSelectQueryBuilder()
-			->from( 'com_rating' )
-			->where( [ 'cr_actor' => $actor ] )
-			->caller( __METHOD__ )
-			->fetchRow();
-
-		if ( !$row ) {
-			return false;
-		}
-
-		// TODO: else, construct comment rating object
-	}
-
-	/**
 	 * Saves this object to the database and returns the insert ID
 	 * @return int|null
 	 */
 	public function save() {
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancerFactory()->getPrimaryDatabase();
-
 		$row = [
 			'c_page' => $this->pageId,
 			'c_actor' => $this->actorId,
@@ -358,26 +411,26 @@ class Comment {
 
 		if ( !$this->id ) {
 			// If there is no ID for this object, then we'll presume it doesn't exist.
-			$dbw->newInsertQueryBuilder()
-				->insertInto( 'com_comment' )
+			$this->dbw->newInsertQueryBuilder()
+				->insertInto( self::TABLE_NAME )
 				->row( $row )
 				->caller( __METHOD__ )
 				->execute();
 
 			// Set the ID of this object to the newly inserted object ID
-			$this->id = $dbw->insertId();
+			$this->id = $this->dbw->insertId();
 		} else {
 			// Perform an update instead
 			$set = [ 'c_id' => $this->id ] + $row;
 
-			$dbw->newUpdateQueryBuilder()
-				->table( 'com_comment' )
+			$this->dbw->newUpdateQueryBuilder()
+				->table( self::TABLE_NAME )
 				->set( $set )
 				->caller( __METHOD__ )
 				->execute();
 		}
 
-		return $dbw->affectedRows() ? $this->id : null;
+		return $this->dbw->affectedRows() ? $this->id : null;
 	}
 
 	/**

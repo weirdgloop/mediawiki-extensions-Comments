@@ -8,7 +8,7 @@ use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
 use Wikimedia\ParamValidator\ParamValidator;
 
-class ApiEditComment extends CommentApiHandler {
+class ApiVoteComment extends CommentApiHandler {
 	/**
 	 * @var CommentFactory
 	 */
@@ -26,7 +26,9 @@ class ApiEditComment extends CommentApiHandler {
 
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
+
 		$commentId = (int)$params[ 'commentid' ];
+		$rating = (int)$body[ 'rating' ];
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
@@ -37,13 +39,14 @@ class ApiEditComment extends CommentApiHandler {
 		if ( $comment->isDeleted() ) {
 			throw new HttpException( "Comment does not exist", 400 );
 		}
-		if ( $comment->getUser()->getId() !== $this->getAuthority()->getUser()->getId() ) {
-			throw new HttpException( "Cannot edit another user's comment", 400 );
-		}
 
-		$text = $body[ 'text' ];
-		$comment->setWikitext( $text );
-		$comment->save();
+		$user = $this->getAuthority()->getUser();
+
+//		if ( $comment->getUser()->getId() === $user->getId() ) {
+//			throw new HttpException( "Cannot vote on user's own comment", 400 );
+//		}
+
+		$comment->setRatingForUser( $user, $rating );
 
 		return $this->getResponseFactory()->createJson( [
 			'comment' => $comment->toArray()
@@ -62,9 +65,9 @@ class ApiEditComment extends CommentApiHandler {
 		}
 
 		return new JsonBodyValidator( [
-			'text' => [
+			'rating' => [
 				self::PARAM_SOURCE => 'body',
-				ParamValidator::PARAM_TYPE => 'string',
+				ParamValidator::PARAM_TYPE => [ -1, 0, 1 ],
 				ParamValidator::PARAM_REQUIRED => true
 			],
 		] );

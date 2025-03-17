@@ -22,5 +22,8 @@
 	"comments-post-placeholder-child": "Reply to this comment",
 	"comments-post-submit-top-level": "Post comment",
 	"comments-post-submit-child": "Reply",
-	"comments-visualeditor-wikitext-warning": "Comments do not support manually inserting wikitext."
+	"comments-visualeditor-wikitext-warning": "Comments do not support manually inserting wikitext.",
+	"comments-rating-upvote": "Upvote",
+	"comments-rating-downvote": "Downvote",
+	"comments-rating-remove": "Remove vote"
 }

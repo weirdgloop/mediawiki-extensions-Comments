@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\Comments;
 
 use MediaWiki\Extension\Comments\Models\Comment;
+use MediaWiki\Extension\Comments\Models\CommentRating;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
@@ -15,8 +16,6 @@ use Wikimedia\Rdbms\UnionQueryBuilder;
  * Helper class for retrieving comments from the database.
  */
 class CommentsPager {
-	private const TABLE_NAME = 'com_comment';
-
 	public const SORT_DATE_DESC = 'sort_date_desc';
 	public const SORT_DATE_ASC = 'sort_date_asc';
 	public const SORT_RATING_DESC = 'sort_rating_desc';
@@ -38,11 +37,6 @@ class CommentsPager {
 	private IDatabase $db;
 
 	/**
-	 * @var UserIdentity|null
-	 */
-	private ?UserIdentity $targetUser = null;
-
-	/**
 	 * @var Title
 	 */
 	private Title $targetTitle;
@@ -51,6 +45,11 @@ class CommentsPager {
 	 * @var bool Set to true to include child comments. Only has effect if $this->parent is null.
 	 */
 	private bool $includeChildren = true;
+
+	/**
+	 * @var UserIdentity|null If set, will also retrieve the user's rating for each comment.
+	 */
+	private ?UserIdentity $userForRating = null;
 
 	/**
 	 * @var bool Set to true to include deleted comments
@@ -86,21 +85,24 @@ class CommentsPager {
 	private string $sortMethod;
 
 	/**
-	 * @var Comment[]
+	 * Object containing two keys for each comment:
+	 * - `c`: the Comment object
+	 * - `ur`: the CommentRating for the provided user ($this->userForRating), if provided
+	 * @var object[]
 	 */
 	private array $res = [];
 
 	public function __construct(
 		array $options,
-		UserIdentity $targetUser = null,
+		UserIdentity $userForRating = null,
 		Title $targetTitle = null,
 		Comment $parent = null,
 		string $sortMethod = self::SORT_DATE_DESC
 	) {
 		$services = MediaWikiServices::getInstance();
 
-		if ( $targetUser ) {
-			$this->targetUser = $targetUser;
+		if ( $userForRating ) {
+			$this->userForRating = $userForRating;
 		}
 		if ( $targetTitle ) {
 			$this->targetTitle = $targetTitle;
@@ -160,8 +162,7 @@ class CommentsPager {
 	}
 
 	/**
-	 * Gets the result of the last query. If the query has not been executed yet, calling this method will do that.
-	 * @return Comment[]
+	 * @return object[]
 	 */
 	public function getResult() {
 		if ( !$this->res ) {
@@ -209,6 +210,8 @@ class CommentsPager {
 	 * @return void
 	 */
 	public function execute() {
+		$actor = $this->userForRating ? $this->actorStore->findActorId( $this->userForRating, $this->db ) : null;
+
 		$conds = [
 			'c_page' => $this->targetTitle->getId()
 		];
@@ -222,18 +225,25 @@ class CommentsPager {
 
 			$uqb = $this->db->newUnionQueryBuilder()->all();
 
-			$uqb->add(
-				$this->db->newSelectQueryBuilder()
-					->select( '*' )
-					->from( self::TABLE_NAME )
-					->where( 'c_parent IN ' . $this->db->buildSelectSubquery(
-							self::TABLE_NAME,
-							'c_id',
-							$conds,
-							__METHOD__,
-							$opts
-						) )
-			);
+			$childSelect = $this->db->newSelectQueryBuilder()
+				->select( '*' )
+				->from( Comment::TABLE_NAME )
+				->where( 'c_parent IN ' . $this->db->buildSelectSubquery(
+						Comment::TABLE_NAME,
+						'c_id',
+						$conds,
+						__METHOD__,
+						$opts
+					) );
+
+			if ( !is_null( $actor )) {
+				$childSelect->leftJoin( 'com_rating', null, [
+					'cr_comment = c_id',
+					'cr_actor' => $actor
+				] );
+			}
+
+			$uqb->add( $childSelect );
 
 			if ( $this->continue !== null ) {
 				$offsetCond = $this->getOffsetCondition();
@@ -247,20 +257,27 @@ class CommentsPager {
 				}
 			}
 
-			$uqb->add(
-				$this->db->newSelectQueryBuilder()
-					->select( '*' )
-					->from(
-						$this->db->buildSelectSubquery(
-							self::TABLE_NAME,
-							'*',
-							$conds,
-							__METHOD__,
-							$opts + [ 'LIMIT' => $this->limit + 1 ]
-						),
-						'a'
+			$parentSelect = $this->db->newSelectQueryBuilder()
+				->select( '*' )
+				->from(
+					$this->db->buildSelectSubquery(
+						Comment::TABLE_NAME,
+						'*',
+						$conds,
+						__METHOD__,
+						$opts + [ 'LIMIT' => $this->limit + 1 ]
 					),
-			);
+					'a'
+				);
+
+			if ( !is_null( $actor )) {
+				$parentSelect->leftJoin( 'com_rating', null, [
+					'cr_comment = c_id',
+					'cr_actor' => $actor
+				] );
+			}
+
+			$uqb->add( $parentSelect );
 
 			return $this->reallyDoQuery( $uqb->caller( __METHOD__ ) );
 		}
@@ -282,7 +299,7 @@ class CommentsPager {
 		}
 
 		return $this->reallyDoQuery( $this->db->newSelectQueryBuilder()
-			->from( self::TABLE_NAME )
+			->from( Comment::TABLE_NAME )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit ] )
 			->caller( __METHOD__ )
@@ -317,7 +334,10 @@ class CommentsPager {
 				}
 			}
 
-			$comments[] = $c;
+			$comments[] = [
+				'c' => $c,
+				'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0
+			];
 		}
 
 		$this->res = $comments;
