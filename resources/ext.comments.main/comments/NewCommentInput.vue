@@ -68,7 +68,17 @@ module.exports = exports = defineComponent( {
 				parentid: this.$props.parentId,
 				html: html
 			} ).then( ( data ) => {
-				this.$data.store.comments.unshift( new Comment( data.comment ) );
+				let newComment = new Comment( data.comment );
+
+				if ( this.$props.parentId ) {
+					// Reply to an existing comment, add it to the end of the children list
+					const ix = this.$data.store.comments.findIndex( ( c ) => c.id = this.$props.parentId );
+					this.$data.store.comments[ix].children.push( newComment );
+				} else {
+					// Top-level comment, just throw it to the top of the comments list
+					this.$data.store.comments.unshift( newComment );
+				}
+
 				this.$data.isWritingComment = false;
 			} ).fail( ( _, result ) => {
 				if ( result.xhr.responseJSON ) {
@@ -102,6 +112,10 @@ module.exports = exports = defineComponent( {
 				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 			} else if ( val === true ) {
 				this.$data.ve.target.getSurface().getView().focus();
+			} else {
+				// When we're no longer writing a comment, kill the VE instance
+				this.$data.ve.target.destroy();
+				this.$data.ve = null;
 			}
 		}
 	},

@@ -19,7 +19,6 @@ function initApp() {
 		$( '<div>' ).attr( 'id', 'ext-comments-container' )
 	);
 
-	// MediaWiki-specific function
 	Vue.createMwApp( App )
 		.mount( '#ext-comments-container' );
 }

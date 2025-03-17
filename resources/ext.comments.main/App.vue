@@ -27,12 +27,11 @@ module.exports = exports = defineComponent( {
 		CdxSelect,
 		CdxField
 	},
-	setup() {
-		const readOnly = mw.config.get( 'wgComments' ).readOnly;
+	mounted() {
+		// When the app first loads, determine whether we should be displaying the comments in a read-only form
+		let readOnly = mw.config.get( 'wgComments' ).readOnly;
 
-		return {
-			readOnly,
-		};
+		this.$data.store.isReadOnly = readOnly;
 	}
 } );
 </script>

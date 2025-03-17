@@ -13,7 +13,8 @@ class SpecialComments extends SpecialPage {
 		$out = $this->getOutput();
 		$this->setHeaders();
 
-		$out->addWikiMsg( 'comments-no-js' );
+		$out->addHTML( '<div id="ext-comments-container"></div>' );
+		$out->addModules( 'ext.comments.main' );
 	}
 
 	/**

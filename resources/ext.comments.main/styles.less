@@ -59,8 +59,15 @@
 			flex-grow: 1;
 		}
 
-		.comment-children > .ext-comments-comment-item {
-			background: #f7f7f7;
+		.comment-children {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5em;
+			margin-bottom: 0.5em;
+
+			> .ext-comments-comment-item {
+				background: #f7f7f7;
+			}
 		}
 	}
 
