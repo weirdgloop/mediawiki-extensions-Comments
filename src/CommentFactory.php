@@ -4,26 +4,16 @@ namespace MediaWiki\Extension\Comments;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Comments\Models\Comment;
-use MediaWiki\Title\TitleFactory;
-use MediaWiki\User\ActorStore;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
 
 class CommentFactory {
 	private LBFactory $lbFactory;
 
-	private TitleFactory $titleFactory;
-
-	private ActorStore $actorStore;
-
 	public function __construct(
-		LBFactory $lbFactory,
-		TitleFactory $titleFactory,
-		ActorStore $actorStore
+		LBFactory $lbFactory
 	) {
 		$this->lbFactory = $lbFactory;
-		$this->titleFactory = $titleFactory;
-		$this->actorStore = $actorStore;
 	}
 
 	/**
@@ -41,29 +31,20 @@ class CommentFactory {
 	 */
 	public function newFromRow( $row ) {
 		$comment = new Comment();
-		$comment->setId( (int)$row->c_id );
-
-		$pageId = (int)$row->c_page;
-		if ( !empty( $pageId ) ) {
-			$comment->setTitle( $this->titleFactory->newFromID( $pageId ) );
-		}
-
-		$actorId = (int)$row->c_actor;
-		if ( !empty( $actorId ) ) {
-			$comment->setUser( $this->actorStore->getActorById(
-				$actorId, $this->lbFactory->getReplicaDatabase() ), $actorId );
-		}
+		$comment->mId = (int)$row->c_id;
+		$comment->mPageId = (int)$row->c_page;
+		$comment->mActorId = (int)$row->c_actor;
 
 		$parentId = (int)$row->c_parent;
 		if ( !empty( $parentId ) ) {
-			$comment->setParent( $this->newEmpty()->setId( $parentId ) );
+			$comment->mParentId = $parentId;
 		}
 
-		$comment->setTimestamp( wfTimestamp( TS_ISO_8601, $row->c_timestamp ) );
-		$comment->setDeleted( (bool)$row->c_deleted );
-		$comment->setWikitext( (string)$row->c_wikitext, false );
-		$comment->setHtml( (string)$row->c_html, false );
-		$comment->setRating( (int)$row->c_rating );
+		$comment->mTimestamp = wfTimestamp( TS_ISO_8601, $row->c_timestamp );
+		$comment->mDeleted = (bool)$row->c_deleted;
+		$comment->mWikitext = (string)$row->c_wikitext;
+		$comment->mHtml = (string)$row->c_html;
+		$comment->mRating = (int)$row->c_rating;
 
 		return $comment;
 	}

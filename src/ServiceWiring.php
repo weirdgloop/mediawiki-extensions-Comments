@@ -10,9 +10,7 @@ use MediaWiki\MediaWikiServices;
 return [
 	'Comments.CommentFactory' => static function ( MediaWikiServices $services ): CommentFactory {
 		return new CommentFactory(
-			$services->getDBLoadBalancerFactory(),
-			$services->getTitleFactory(),
-			$services->getActorStore()
+			$services->getDBLoadBalancerFactory()
 		);
 	}
 ];

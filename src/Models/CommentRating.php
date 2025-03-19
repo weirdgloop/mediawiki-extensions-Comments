@@ -2,7 +2,6 @@
 
 namespace MediaWiki\Extension\Comments\Models;
 
-use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
@@ -11,16 +10,16 @@ use Wikimedia\Rdbms\IDatabase;
 
 class CommentRating {
 	/** @var int */
-	private $actorId;
+	public $mActorId;
 
 	/** @var int */
-	private $commentId;
+	public $mCommentId;
 
 	/** @var Comment */
-	private $comment;
+	private $mComment;
 
 	/** @var int -1, 0, or 1 */
-	private $rating;
+	public $mRating;
 
 	/** @var IDatabase */
 	private $dbw;
@@ -42,9 +41,10 @@ class CommentRating {
 	 */
 	public static function newFromRow( $row ) {
 		$obj = new CommentRating();
-		$obj->setComment( (int)$row->cr_comment )
-			->setActor( (int)$row->cr_actor )
-			->setRating( (int)$row->cr_rating );
+		$obj->mCommentId = (int)$row->cr_comment;
+		$obj->mActorId = (int)$row->cr_actor;
+		$obj->mRating = (int)$row->cr_rating;
+
 		return $obj;
 	}
 
@@ -82,7 +82,12 @@ class CommentRating {
 	 * @return Comment
 	 */
 	public function getComment() {
-		return $this->comment;
+		if ( $this->mComment === null ) {
+			$this->mComment = MediaWikiServices::getInstance()->getService( 'Comments.CommentFactory' )
+				->newFromId( $this->mCommentId );
+		}
+
+		return $this->mComment;
 	}
 
 	/**
@@ -90,7 +95,7 @@ class CommentRating {
 	 * @return int
 	 */
 	public function getActorId() {
-		return $this->actorId;
+		return $this->mActorId;
 	}
 
 	/**
@@ -98,7 +103,7 @@ class CommentRating {
 	 * @return int
 	 */
 	public function getRating() {
-		return $this->rating;
+		return $this->mRating;
 	}
 
 	/**
@@ -113,7 +118,7 @@ class CommentRating {
 			$actor = $this->actorStore->acquireActorId( $actor, $this->dbw );
 		}
 
-		$this->actorId = $actor;
+		$this->mActorId = $actor;
 		return $this;
 	}
 
@@ -125,7 +130,7 @@ class CommentRating {
 	 * @return $this
 	 */
 	public function setRating( $rating ) {
-		$this->rating = $rating;
+		$this->mRating = $rating;
 		return $this;
 	}
 
@@ -133,15 +138,12 @@ class CommentRating {
 	 * Sets the comment that this rating relates to.
 	 *
 	 * This method returns the current CommentRating object for easier chaining.
-	 * @param Comment|int $comment
+	 * @param Comment $comment
 	 * @return $this
 	 */
 	public function setComment( $comment ) {
-		if ( is_int( $comment ) ) {
-			$comment = MediaWikiServices::getInstance()->getService( 'Comments.CommentFactory' )->newFromId( $comment );
-		}
-
-		$this->comment = $comment;
+		$this->mComment = $comment;
+		$this->mCommentId = $comment->getId();
 		return $this;
 	}
 
@@ -153,13 +155,13 @@ class CommentRating {
 		$prev = $this->dbw->newSelectQueryBuilder()
 			->select( 'cr_rating' )
 			->table( 'com_rating' )
-			->where( [ 'cr_actor' => $this->actorId, 'cr_comment' => $this->comment->getId() ] )
+			->where( [ 'cr_actor' => $this->mActorId, 'cr_comment' => $this->mCommentId ] )
 			->caller( __METHOD__ )->fetchField();
 
 		$row = [
-			'cr_comment' => $this->comment->getId(),
-			'cr_actor' => $this->actorId,
-			'cr_rating' => $this->rating
+			'cr_comment' => $this->mCommentId,
+			'cr_actor' => $this->mActorId,
+			'cr_rating' => $this->mRating
 		];
 
 		$this->dbw->newInsertQueryBuilder()
@@ -167,23 +169,23 @@ class CommentRating {
 			->row( $row )
 			->onDuplicateKeyUpdate()
 			->uniqueIndexFields( [ 'cr_comment', 'cr_actor' ] )
-			->set( [ 'cr_rating' => $this->rating ] )
+			->set( [ 'cr_rating' => $this->mRating ] )
 			->caller( __METHOD__ )
 			->execute();
 
 		if ( is_null( $prev ) ) {
 			// User had not rated this comment before
-			if ( $this->rating === -1 ) {
-				$this->comment->decrementRatingCount();
-			} else if ( $this->rating === 1 ) {
-				$this->comment->incrementRatingCount();
+			if ( $this->mRating === -1 ) {
+				$this->getComment()->decrementRatingCount();
+			} else if ( $this->mRating === 1 ) {
+				$this->getComment()->incrementRatingCount();
 			}
-		} else if ( (int)$prev !== $this->rating ) {
+		} else if ( (int)$prev !== $this->mRating ) {
 			// Rating is different to what the previous value was for this user
-			if ( $this->rating < (int)$prev ) {
-				$this->comment->decrementRatingCount();
+			if ( $this->mRating < (int)$prev ) {
+				$this->getComment()->decrementRatingCount();
 			} else {
-				$this->comment->incrementRatingCount();
+				$this->getComment()->incrementRatingCount();
 			}
 		}
 	}

@@ -59,8 +59,7 @@
 			"method": "GET",
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentsForPage",
 			"services": [
-				"TitleFactory",
-				"Comments.CommentFactory"
+				"TitleFactory"
 			]
 		},
 		{

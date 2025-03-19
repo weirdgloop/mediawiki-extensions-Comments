@@ -8,7 +8,6 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
 use ParserOptions;
-use stdClass;
 use Wikimedia\Rdbms\IDatabase;
 use WikitextContent;
 
@@ -16,37 +15,40 @@ class Comment {
 	public const TABLE_NAME = 'com_comment';
 
 	/** @var int */
-	private $id;
+	public $mId;
 
 	/** @var Title */
-	private $title;
+	private $mTitle;
 
 	/** @var int */
-	private $pageId;
+	public $mPageId;
 
 	/** @var UserIdentity */
-	private $actor;
+	private $mActor;
 
 	/** @var int */
-	private $actorId;
+	public $mActorId;
 
 	/** @var string */
-	private $timestamp;
+	public $mTimestamp;
 
 	/** @var Comment|null */
-	private $parent = null;
-
-	/** @var bool */
-	private $deleted = false;
+	private $mParent = null;
 
 	/** @var int */
-	private $rating = 0;
+	public $mParentId;
+
+	/** @var bool */
+	public $mDeleted = false;
+
+	/** @var int */
+	public $mRating = 0;
 
 	/** @var string */
-	private $html;
+	public $mHtml;
 
 	/** @var string */
-	private $wikitext;
+	public $mWikitext;
 
 	/** @var IDatabase */
 	private $dbw;
@@ -58,7 +60,7 @@ class Comment {
 	 * @internal
 	 */
 	public function __construct() {
-		$this->timestamp = wfTimestamp( TS_ISO_8601 );
+		$this->mTimestamp = wfTimestamp( TS_ISO_8601 );
 
 		$services = MediaWikiServices::getInstance();
 		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
@@ -70,19 +72,7 @@ class Comment {
 	 * @return int
 	 */
 	public function getId() {
-		return $this->id;
-	}
-
-	/**
-	 * Sets the ID of this comment. Once a comment as been assigned an ID, the ID is **immutable**.
-	 *
-	 * This method returns the current Comment object for easier chaining.
-	 * @param int $id
-	 * @return $this
-	 */
-	public function setId( $id ) {
-		$this->id = $id;
-		return $this;
+		return $this->mId;
 	}
 
 	/**
@@ -90,12 +80,12 @@ class Comment {
 	 * @return Title
 	 */
 	public function getTitle() {
-		if ( $this->title ) {
-			return $this->title;
+		if ( $this->mTitle !== null ) {
+			return $this->mTitle;
 		}
 
-		$this->title = MediaWikiServices::getInstance()->getTitleFactory()->newFromID( $this->pageId );
-		return $this->title;
+		$this->mTitle = MediaWikiServices::getInstance()->getTitleFactory()->newFromID( $this->mPageId );
+		return $this->mTitle;
 	}
 
 	/**
@@ -106,37 +96,34 @@ class Comment {
 	 * @return Comment
 	 */
 	public function setTitle( $title ) {
-		$this->title = $title;
-		$this->pageId = $this->title->getId();
+		$this->mTitle = $title;
+		$this->mPageId = $this->mTitle->getId();
 		return $this;
 	}
 
 	/**
-	 * The user (actor) who posted the comment
+	 * The actor who posted the comment
 	 * @return UserIdentity
 	 */
-	public function getUser() {
-		if ( $this->actor ) {
-			return $this->actor;
+	public function getActor() {
+		if ( $this->mActor ) {
+			return $this->mActor;
 		}
 
-		$this->actor = $this->actorStore->getActorById( $this->actorId, $this->dbw );
-		return $this->actor;
+		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
+		return $this->mActor;
 	}
 
 	/**
-	 * Sets the user (actor) who posted this comment
+	 * Sets the actor who posted this comment
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param UserIdentity $user
-	 * @param int|null $actorId
 	 * @return Comment
 	 */
-	public function setUser( $user, $actorId = null ) {
-		$this->actor = $user;
-		if ( !$actorId ) {
-			$this->actorId = $this->actorStore->findActorId( $user, $this->dbw );
-		}
+	public function setActor( $user ) {
+		$this->mActor = $user;
+		$this->mActorId = $this->actorStore->findActorId( $user, $this->dbw );
 		return $this;
 	}
 
@@ -145,7 +132,7 @@ class Comment {
 	 * @return Comment|null
 	 */
 	public function getParent() {
-		return $this->parent;
+		return $this->mParent;
 	}
 
 	/**
@@ -159,7 +146,8 @@ class Comment {
 	 * @return Comment
 	 */
 	public function setParent( $commentOrNull ) {
-		$this->parent = $commentOrNull;
+		$this->mParent = $commentOrNull;
+		$this->mParentId = $commentOrNull ? $commentOrNull->getId() : null;
 		return $this;
 	}
 
@@ -168,7 +156,7 @@ class Comment {
 	 * @return bool
 	 */
 	public function isDeleted() {
-		return $this->deleted;
+		return $this->mDeleted;
 	}
 
 	/**
@@ -179,7 +167,7 @@ class Comment {
 	 * @return Comment
 	 */
 	public function setDeleted( $deleted ) {
-		$this->deleted = $deleted;
+		$this->mDeleted = $deleted;
 		return $this;
 	}
 
@@ -188,7 +176,7 @@ class Comment {
 	 * @return string
 	 */
 	public function getHtml() {
-		return $this->html;
+		return $this->mHtml;
 	}
 
 	/**
@@ -199,7 +187,7 @@ class Comment {
 	 * @return Comment
 	 */
 	public function setHtml( $html, $parse = true ) {
-		$this->html = $html;
+		$this->mHtml = $html;
 		if ( $parse === true ) {
 			$this->reparse( true );
 		}
@@ -212,7 +200,7 @@ class Comment {
 	 * @return string
 	 */
 	public function getWikitext() {
-		return $this->wikitext;
+		return $this->mWikitext;
 	}
 
 	/**
@@ -224,7 +212,7 @@ class Comment {
 	 * @return Comment
 	 */
 	public function setWikitext( $text, $parse = true ) {
-		$this->wikitext = $text;
+		$this->mWikitext = $text;
 		if ( $parse === true ) {
 			$this->reparse( false );
 		}
@@ -236,7 +224,7 @@ class Comment {
 	 * @return string
 	 */
 	public function getTimestamp() {
-		return $this->timestamp;
+		return $this->mTimestamp;
 	}
 
 	/**
@@ -248,7 +236,7 @@ class Comment {
 	 * @return $this
 	 */
 	public function setTimestamp( $ts ) {
-		$this->timestamp = wfTimestamp( TS_ISO_8601, $ts );
+		$this->mTimestamp = wfTimestamp( TS_ISO_8601, $ts );
 		return $this;
 	}
 
@@ -262,7 +250,7 @@ class Comment {
 	 * @return int
 	 */
 	public function getRating() {
-		return $this->rating;
+		return $this->mRating;
 	}
 
 	/**
@@ -273,7 +261,7 @@ class Comment {
 	 * @return CommentRating
 	 */
 	public function getRatingForUser( $user ) {
-		return CommentRating::fetchByCommentAndUser( $this->id, $user );
+		return CommentRating::fetchByCommentAndUser( $this->mId, $user );
 	}
 
 	/**
@@ -304,13 +292,13 @@ class Comment {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
 			->set( [ 'c_rating=c_rating+' . 1 ] )
-			->where( [ 'c_id' => $this->id ] )
+			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
 		$this->rating = (int)$this->dbw->newSelectQueryBuilder()
 			->select( 'c_rating' )
 			->table( $this::TABLE_NAME )
-			->where( [ 'c_id' => $this->id ] )
+			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->fetchField();
 	}
 
@@ -325,13 +313,13 @@ class Comment {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
 			->set( [ 'c_rating=c_rating-' . 1 ] )
-			->where( [ 'c_id' => $this->id ] )
+			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
 		$this->rating = (int)$this->dbw->newSelectQueryBuilder()
 			->select( 'c_rating' )
 			->table( $this::TABLE_NAME )
-			->where( [ 'c_id' => $this->id ] )
+			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->fetchField();
 	}
 
@@ -344,7 +332,7 @@ class Comment {
 	 * @return $this
 	 */
 	public function setRating( $rating ) {
-		$this->rating = $rating;
+		$this->mRating = $rating;
 		return $this;
 	}
 
@@ -359,12 +347,12 @@ class Comment {
 	 */
 	public function reparse( $fromHtml = false ) {
 		if ( $fromHtml ) {
-			if ( !$this->html ) {
+			if ( !$this->mHtml ) {
 				throw new InvalidArgumentException( 'No HTML provided; the comment could not be parsed.' );
 			}
 
 			$transform = MediaWikiServices::getInstance()->getHtmlTransformFactory()
-				->getHtmlToContentTransform( $this->html, $this->title );
+				->getHtmlToContentTransform( $this->mHtml, $this->mTitle );
 
 			$transform->setOptions( [
 				'contentmodel' => CONTENT_MODEL_WIKITEXT,
@@ -385,11 +373,11 @@ class Comment {
 			}
 
 			$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
-			$parserOpts = $this->actor ? ParserOptions::newFromUser( $this->actor ) : ParserOptions::newFromAnon();
-			$parserOutput = $parser->parse( $this->wikitext, $this->title, $parserOpts );
+			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
+			$parserOutput = $parser->parse( $this->mWikitext, $this->mTitle, $parserOpts );
 
-			$this->html = $parserOutput->getText();
-			return $this->html;
+			$this->mHtml = $parserOutput->getText();
+			return $this->mHtml;
 		}
 	}
 
@@ -399,14 +387,14 @@ class Comment {
 	 */
 	public function save() {
 		$row = [
-			'c_page' => $this->pageId,
-			'c_actor' => $this->actorId,
-			'c_parent' => $this->parent->id,
-			'c_timestamp' => wfTimestamp( TS_MW, $this->timestamp ),
-			'c_deleted' => (int)$this->deleted,
-			'c_rating' => $this->rating,
-			'c_html' => $this->html,
-			'c_wikitext' => $this->wikitext
+			'c_page' => $this->mPageId,
+			'c_actor' => $this->mActorId,
+			'c_parent' => $this->mParent->mId,
+			'c_timestamp' => wfTimestamp( TS_MW, $this->mTimestamp ),
+			'c_deleted' => (int)$this->mDeleted,
+			'c_rating' => $this->mRating,
+			'c_html' => $this->mHtml,
+			'c_wikitext' => $this->mWikitext
 		];
 
 		if ( !$this->id ) {
@@ -430,24 +418,25 @@ class Comment {
 				->execute();
 		}
 
-		return $this->dbw->affectedRows() ? $this->id : null;
+		return $this->dbw->affectedRows() ? $this->mId : null;
 	}
 
 	/**
 	 * @return array
 	 */
 	public function toArray() {
+		$actor = $this->getActor();
 		return [
-			'id' => $this->id,
-			'timestamp' => $this->timestamp,
-			'actor' => $this->actor ? [
-				'id' => $this->actor->getId(),
-				'name' => $this->actor->getName()
+			'id' => $this->mId,
+			'timestamp' => $this->mTimestamp,
+			'actor' => $this->mActor ? [
+				'id' => $actor->getId(),
+				'name' => $actor->getName()
 			] : null,
-			'deleted' => $this->deleted,
-			'rating' => $this->rating,
-			'html' => $this->html,
-			'wikitext' => $this->wikitext
+			'deleted' => $this->mDeleted,
+			'rating' => $this->mRating,
+			'html' => $this->mHtml,
+			'wikitext' => $this->mWikitext
 		];
 	}
 }

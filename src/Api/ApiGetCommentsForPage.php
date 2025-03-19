@@ -17,14 +17,8 @@ class ApiGetCommentsForPage extends SimpleHandler {
 	 */
 	private TitleFactory $titleFactory;
 
-	/**
-	 * @var CommentFactory
-	 */
-	private CommentFactory $commentFactory;
-
-	public function __construct( TitleFactory $titleFactory, CommentFactory $commentFactory ) {
+	public function __construct( TitleFactory $titleFactory ) {
 		$this->titleFactory = $titleFactory;
-		$this->commentFactory = $commentFactory;
 	}
 
 	/**
@@ -65,7 +59,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 
 		$continue = $pager->getContinue();
 		foreach ( $res as $r ) {
-			if ( $r['c']->getParent() !== null ) {
+			if ( $r['c']->mParentId !== null ) {
 				// If this is a child comment, add it to the child comments array for processing later
 				$childComments[] = $r;
 			} else {
@@ -79,7 +73,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		// Process all the child comments, nesting them under their parents
 		foreach ( $childComments as $child ) {
 			foreach ( $comments as $index => $topLevelComment ) {
-				if ( $topLevelComment[ 'id' ] === $child['c']->getParent()->getId() ) {
+				if ( $topLevelComment[ 'id' ] === $child['c']->mParentId ) {
 					$comments[ $index ][ 'children' ][] = $child['c']->toArray() + [
 						'userRating' => $child['ur']
 					];
