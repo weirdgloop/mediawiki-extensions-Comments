@@ -6,6 +6,7 @@
 			data-type="upvote"
 			:value="currentVote === 1"
 			@click="onButtonClick"
+			:disabled="waiting"
 		>
 			<cdx-icon
 				:icon="cdxIconUpTriangle"
@@ -18,6 +19,7 @@
 			data-type="downvote"
 			:value="currentVote === -1"
 			@click="onButtonClick"
+			:disabled="waiting"
 		>
 			<cdx-icon
 				:icon="cdxIconDownTriangle"
@@ -51,11 +53,13 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
-			currentVote: this.$props.comment.userRating
+			currentVote: this.$props.comment.userRating,
+			waiting: false
 		}
 	},
 	methods: {
 		onButtonClick( e ) {
+			this.$data.waiting = true;
 			const type = e.currentTarget.dataset.type;
 			let newValue = 0;
 
@@ -70,6 +74,8 @@ module.exports = exports = defineComponent( {
 			} ).then( ( data ) => {
 				this.$data.currentVote = newValue;
 				this.$props.comment.rating = data.comment.rating;
+			} ).always( () => {
+				this.$data.waiting = false;
 			} )
 		}
 	},

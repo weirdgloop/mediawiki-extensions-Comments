@@ -16,7 +16,7 @@
 							}"
 						>{{ rating }}</span>
 						&#183;
-						<span class="comment-date">{{ date }}</span>
+						<span class="comment-date" :title="this.comment.timestamp">{{ date }}</span>
 					</div>
 				</div>
 				<div class="comment-actions">

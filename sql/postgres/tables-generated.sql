@@ -7,7 +7,7 @@ CREATE TABLE com_comment (
   c_page INT NOT NULL,
   c_actor BIGINT DEFAULT 0 NOT NULL,
   c_timestamp TIMESTAMPTZ NOT NULL,
-  c_parent INT NOT NULL,
+  c_parent INT DEFAULT NULL,
   c_deleted SMALLINT DEFAULT 0 NOT NULL,
   c_rating INT DEFAULT 0 NOT NULL,
   c_html TEXT NOT NULL,

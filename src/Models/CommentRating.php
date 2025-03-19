@@ -173,14 +173,14 @@ class CommentRating {
 			->caller( __METHOD__ )
 			->execute();
 
-		if ( is_null( $prev ) ) {
+		if ( $prev === null ) {
 			// User had not rated this comment before
 			if ( $this->mRating === -1 ) {
 				$this->getComment()->decrementRatingCount();
-			} else if ( $this->mRating === 1 ) {
+			} elseif ( $this->mRating === 1 ) {
 				$this->getComment()->incrementRatingCount();
 			}
-		} else if ( (int)$prev !== $this->mRating ) {
+		} elseif ( (int)$prev !== $this->mRating ) {
 			// Rating is different to what the previous value was for this user
 			if ( $this->mRating < (int)$prev ) {
 				$this->getComment()->decrementRatingCount();

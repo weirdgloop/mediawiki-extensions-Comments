@@ -60,7 +60,7 @@ class ApiPostComment extends CommentApiHandler {
 		// Create a new comment
 		$comment = $this->commentFactory->newEmpty()
 			->setTitle( $page )
-			->setUser( $this->getAuthority()->getUser() )
+			->setActor( $this->getAuthority()->getUser() )
 			->setParent( $parent )
 			->setHtml( $html );
 

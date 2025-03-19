@@ -36,7 +36,7 @@
 		}
 	},
 	"Hooks": {
-		"LoadExtensionSchemaUpdates": "main",
+		"LoadExtensionSchemaUpdates": "schema",
 		"GetAllBlockActions": "main",
 		"BeforePageDisplay": "main",
 		"ResourceLoaderGetConfigVars": "main"
@@ -47,10 +47,13 @@
 	],
 	"HookHandlers": {
 		"main": {
-			"class": "MediaWiki\\Extension\\Comments\\CommentsHooks",
+			"class": "MediaWiki\\Extension\\Comments\\Hooks\\GeneralHookHandlers",
 			"services": [
 				"MainConfig"
 			]
+		},
+		"schema": {
+			"class": "MediaWiki\\Extension\\Comments\\Hooks\\SchemaHookHandlers"
 		}
 	},
 	"RestRoutes": [

@@ -267,8 +267,8 @@ class Comment {
 	/**
 	 * Sets a rating for a particular user.
 	 *
-	 * @param $user UserIdentity
-	 * @param $rating int an integer matching `-1`, `0`, or `1`
+	 * @param UserIdentity $user
+	 * @param int $rating an integer matching `-1`, `0`, or `1`
 	 * @return CommentRating
 	 */
 	public function setRatingForUser( $user, $rating ) {
@@ -365,10 +365,10 @@ class Comment {
 				throw new InvalidArgumentException( 'Unable to convert to wikitext' );
 			}
 
-			$this->wikitext = $content->getText();
-			return $this->wikitext;
+			$this->mWikitext = $content->getText();
+			return $this->mWikitext;
 		} else {
-			if ( !$this->wikitext ) {
+			if ( !$this->mWikitext ) {
 				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
 			}
 
@@ -397,7 +397,7 @@ class Comment {
 			'c_wikitext' => $this->mWikitext
 		];
 
-		if ( !$this->id ) {
+		if ( !$this->mId ) {
 			// If there is no ID for this object, then we'll presume it doesn't exist.
 			$this->dbw->newInsertQueryBuilder()
 				->insertInto( self::TABLE_NAME )
@@ -406,10 +406,10 @@ class Comment {
 				->execute();
 
 			// Set the ID of this object to the newly inserted object ID
-			$this->id = $this->dbw->insertId();
+			$this->mId = $this->dbw->insertId();
 		} else {
 			// Perform an update instead
-			$set = [ 'c_id' => $this->id ] + $row;
+			$set = [ 'c_id' => $this->mId ] + $row;
 
 			$this->dbw->newUpdateQueryBuilder()
 				->table( self::TABLE_NAME )
