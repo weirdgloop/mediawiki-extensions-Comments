@@ -2,7 +2,10 @@
 
 namespace MediaWiki\Extension\Comments\Models;
 
+use ExtensionRegistry;
 use InvalidArgumentException;
+use MediaWiki\Config\Config;
+use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
@@ -56,6 +59,9 @@ class Comment {
 	/** @var ActorStore */
 	private $actorStore;
 
+	/** @var Config  */
+	private $config;
+
 	/**
 	 * @internal
 	 */
@@ -65,6 +71,7 @@ class Comment {
 		$services = MediaWikiServices::getInstance();
 		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 		$this->actorStore = $services->getActorStore();
+		$this->config = $services->getMainConfig();
 	}
 
 	/**
@@ -379,6 +386,40 @@ class Comment {
 			$this->mHtml = $parserOutput->getText();
 			return $this->mHtml;
 		}
+	}
+
+	/**
+	 * Check whether this Comment object would violate one of the wiki's anti-abuse measures. If the result from this
+	 * method is null, then the comment passed validation. Else, it will return an array of errors from
+	 * `Status::getErrorsArray()`.
+	 * @return array[]|null
+	 */
+	public function checkSpamFilters() {
+		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromUserIdentity( $this->mActor );
+
+		// Run the comment through AbuseFilter, if it is installed and enabled
+		if ( $this->config->get( 'CommentsUseAbuseFilter' ) &&
+			ExtensionRegistry::getInstance()->isLoaded( 'Abuse Filter' ) ) {
+			$vars = AbuseFilterServices::getVariableGeneratorFactory()
+				->newGenerator()
+				->addUserVars( $this->mActor )
+				->addTitleVars( $this->mTitle, 'page' )
+				->addGenericVars()
+				->getVariableHolder();
+			$vars->setVar( 'action', 'comment' );
+			$vars->setVar( 'new_wikitext', $this->mWikitext );
+			$vars->setLazyLoadVar( 'new_size', 'length', [ 'length-var' => 'new_wikitext' ] );
+
+			$rf = AbuseFilterServices::getFilterRunnerFactory();
+			$runner = $rf->newRunner( $user, $this->mTitle, $vars, 'default' );
+			$status = $runner->run();
+
+			if ( !$status->isOK() ) {
+				return $status->getErrorsArray();
+			}
+		}
+
+		return null;
 	}
 
 	/**

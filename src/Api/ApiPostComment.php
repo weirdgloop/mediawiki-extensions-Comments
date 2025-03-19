@@ -4,8 +4,10 @@ namespace MediaWiki\Extension\Comments\Api;
 
 use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
 use MediaWiki\Title\TitleFactory;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiPostComment extends CommentApiHandler {
@@ -35,12 +37,14 @@ class ApiPostComment extends CommentApiHandler {
 
 		$page = $this->titleFactory->newFromID( $pageid );
 		if ( !$page || !$page->exists() ) {
-			throw new HttpException( "Page with ID $pageid does not exist", 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-page-missing', $pageid ), 400 );
 		}
 
 		$html = trim( (string)$body[ 'html' ] );
 		if ( !$html ) {
-			throw new HttpException( 'Comment cannot be empty', 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-empty' ), 400 );
 		}
 
 		$parentId = (int)$body[ 'parentid' ];
@@ -50,10 +54,12 @@ class ApiPostComment extends CommentApiHandler {
 			$parent = $this->commentFactory->newFromId( $parentId );
 
 			if ( $parent->isDeleted() ) {
-				throw new HttpException( "Parent comment $parentId does not exist", 400 );
+				throw new LocalizedHttpException(
+					new MessageValue( 'comments-submit-error-parent-missing', $parentId ), 400 );
 			}
 			if ( $parent->getParent() ) {
-				throw new HttpException( "Cannot reply to a comment that already has a parent", 400 );
+				throw new LocalizedHttpException(
+					new MessageValue( 'comments-submit-error-parent-hasparent' ), 400 );
 			}
 		}
 
@@ -64,10 +70,18 @@ class ApiPostComment extends CommentApiHandler {
 			->setParent( $parent )
 			->setHtml( $html );
 
+		$isSpam = $comment->checkSpamFilters();
+		if ( $isSpam ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-spam' ), 400
+			);
+		}
+
 		$comment->save();
 
 		return $this->getResponseFactory()->createJson( [
-			'comment' => $comment->toArray()
+			'comment' => $comment->toArray(),
+			'spam' => $isSpam
 		] );
 	}
 

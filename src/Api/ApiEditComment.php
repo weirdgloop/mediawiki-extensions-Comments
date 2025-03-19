@@ -5,7 +5,9 @@ namespace MediaWiki\Extension\Comments\Api;
 use InvalidArgumentException;
 use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiEditComment extends CommentApiHandler {
@@ -37,12 +39,20 @@ class ApiEditComment extends CommentApiHandler {
 		if ( $comment->isDeleted() ) {
 			throw new HttpException( "Comment does not exist", 400 );
 		}
-		if ( $comment->getUser()->getId() !== $this->getAuthority()->getUser()->getId() ) {
+		if ( $comment->getActor()->getId() !== $this->getAuthority()->getUser()->getId() ) {
 			throw new HttpException( "Cannot edit another user's comment", 400 );
 		}
 
 		$text = $body[ 'text' ];
 		$comment->setWikitext( $text );
+
+		$isSpam = $comment->checkSpamFilters();
+		if ( $isSpam ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-spam' ), 400
+			);
+		}
+
 		$comment->save();
 
 		return $this->getResponseFactory()->createJson( [

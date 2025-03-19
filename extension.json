@@ -33,6 +33,9 @@
 		},
 		"ReadOnly": {
 			"value": false
+		},
+		"UseAbuseFilter": {
+			"value": true
 		}
 	},
 	"Hooks": {
