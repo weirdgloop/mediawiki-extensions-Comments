@@ -80,8 +80,7 @@ class ApiPostComment extends CommentApiHandler {
 		$comment->save();
 
 		return $this->getResponseFactory()->createJson( [
-			'comment' => $comment->toArray(),
-			'spam' => $isSpam
+			'comment' => $comment->toArray()
 		] );
 	}
 

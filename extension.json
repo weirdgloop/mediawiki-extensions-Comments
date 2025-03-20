@@ -162,7 +162,8 @@
 				"cancel",
 				"comments-rating-upvote",
 				"comments-rating-downvote",
-				"comments-rating-remove"
+				"comments-rating-remove",
+				"comments-load-error"
 			],
 			"targets": [
 				"desktop",

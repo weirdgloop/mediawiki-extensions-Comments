@@ -37,7 +37,8 @@ const Comment = require( '../comment.js' );
 const api = new mw.Rest();
 
 const config = mw.config.get( [
-	'wgArticleId'
+	'wgArticleId',
+	'wgContentLanguage'
 ] );
 
 module.exports = exports = defineComponent( {
@@ -81,14 +82,18 @@ module.exports = exports = defineComponent( {
 
 				this.$data.isWritingComment = false;
 			} ).fail( ( _, result ) => {
-				if ( result.xhr.responseJSON ) {
-					mw.notify( result.xhr.responseJSON.message, { type: 'error', tag: 'post-comment-error' } );
+				let error = '';
+				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
+					result.xhr.responseJSON, 'messageTranslations' ) ) {
+					if ( config.wgContentLanguage in result.xhr.responseJSON.messageTranslations ) {
+						error = result.xhr.responseJSON.messageTranslations[ config.wgContentLanguage ];
+					} else {
+						error = result.xhr.responseJSON.messageTranslations.en
+					}
 				} else {
-					mw.notify( 'There was a problem. Please try again.', {
-						type: 'error',
-						tag: 'post-comment-error'
-					} )
+					error = mw.Message( 'unknown-error' );
 				}
+				mw.notify( error, { type: 'error', tag: 'post-comment-error' } );
 			} )
 		}
 	},

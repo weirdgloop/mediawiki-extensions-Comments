@@ -13,6 +13,12 @@
 			{{ $i18n( 'comments-continue' ).text() }}
 		</button>
 		<div
+			v-if="error"
+			class="mw-message-box mw-message-box-error"
+		>
+			{{ $i18n( 'comments-load-error', error ).text() }}
+		</div>
+		<div
 			v-else-if="$data.initialLoad && !store.comments.length"
 			class="comment-list-footer"
 		>
@@ -51,11 +57,14 @@ module.exports = exports = defineComponent( {
 		return {
 			store,
 			initialLoad: false,
-			moreContinue: null
+			moreContinue: null,
+			error: null
 		};
 	},
 	methods: {
 		loadComments() {
+			this.$data.error = null;
+
 			const qsp = new URLSearchParams( {
 				limit: config.wgComments.resultsPerPage,
 				sort: this.$data.store.sortMethod
@@ -72,7 +81,14 @@ module.exports = exports = defineComponent( {
 					}
 					this.$data.store.comments = this.$data.store.comments.concat( comments );
 					this.$data.moreContinue = res.query.continue;
-				} );
+				} )
+				.fail( ( _, data ) => {
+					if ( data && data.xhr && data.xhr.status ) {
+						this.$data.error = data.xhr.status;
+					} else {
+						this.$data.error = true;
+					}
+				} )
 		}
 	},
 	watch: {

@@ -2,7 +2,6 @@
 
 namespace MediaWiki\Extension\Comments\Api;
 
-use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Extension\Comments\CommentsPager;
 use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\Extension\Comments\Utils;
