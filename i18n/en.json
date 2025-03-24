@@ -31,5 +31,8 @@
 	"comments-submit-error-page-missing": "Page with ID $1 does not exist",
 	"comments-submit-error-parent-missing": "The parent comment $1 does not exist",
 	"comments-submit-error-parent-hasparent": "Cannot reply to a comment which already has a parent",
-	"comments-submit-error-spam": "Your comment has been blocked as it has been identified as harmful."
+	"comments-submit-error-spam": "Your comment has been blocked as it has been identified as harmful.",
+	"comments-upload-permissionerror": "You do not have permission to upload files to comments.",
+	"comments-upload-blocked": "You are blocked from commenting.",
+	"comments-upload-error-unknown": "An unknown error occurred while uploading the file. Code: $1"
 }

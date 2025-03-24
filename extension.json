@@ -36,6 +36,9 @@
 		},
 		"UseAbuseFilter": {
 			"value": true
+		},
+		"FileBackend": {
+			"value": ""
 		}
 	},
 	"Hooks": {
@@ -46,7 +49,8 @@
 	},
 	"AvailableRights": [
 		"comments",
-		"comments-manage"
+		"comments-manage",
+		"comments-upload"
 	],
 	"HookHandlers": {
 		"main": {
@@ -91,6 +95,14 @@
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiVoteComment",
 			"services": [
 				"Comments.CommentFactory"
+			]
+		},
+		{
+			"path": "/comments/v0/comment/upload",
+			"method": "POST",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiUploadFile",
+			"services": [
+				"Comments.CommentFileService"
 			]
 		}
 	],
