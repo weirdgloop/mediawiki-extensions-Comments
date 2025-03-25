@@ -8,7 +8,8 @@ CREATE TABLE /*_*/com_comment (
   c_timestamp BLOB NOT NULL, c_parent INTEGER UNSIGNED DEFAULT NULL,
   c_deleted SMALLINT UNSIGNED DEFAULT 0 NOT NULL,
   c_rating INTEGER UNSIGNED DEFAULT 0 NOT NULL,
-  c_html BLOB NOT NULL, c_wikitext BLOB NOT NULL
+  c_html BLOB NOT NULL, c_wikitext BLOB NOT NULL,
+  c_edited_timestamp BLOB DEFAULT NULL
 );
 
 CREATE INDEX c_timestamp ON /*_*/com_comment (c_timestamp);

@@ -56,6 +56,12 @@
 				"comment": "Wikitext of the comment, used for populating the textarea when the comment is edited",
 				"type": "blob",
 				"options": { "notnull": true, "length": 16777215 }
+			},
+			{
+				"name": "c_edited_timestamp",
+				"comment": "Timestamp of when the comment was last edited",
+				"type": "mwtimestamp",
+				"options": { "notnull": false }
 			}
 		],
 		"indexes": [

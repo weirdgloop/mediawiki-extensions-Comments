@@ -40,7 +40,13 @@ class CommentFactory {
 			$comment->mParentId = $parentId;
 		}
 
-		$comment->mTimestamp = wfTimestamp( TS_ISO_8601, $row->c_timestamp );
+		$comment->mCreatedTimestamp = wfTimestamp( TS_ISO_8601, $row->c_timestamp );
+
+		$editedTs = $row->c_edited_timestamp;
+		if ( !empty( $editedTs ) ) {
+			$comment->mEditedTimestamp = wfTimestamp( TS_ISO_8601, $row->c_edited_timestamp );
+		}
+
 		$comment->mDeleted = (bool)$row->c_deleted;
 		$comment->mWikitext = (string)$row->c_wikitext;
 		$comment->mHtml = (string)$row->c_html;

@@ -33,18 +33,24 @@ class ApiEditComment extends CommentApiHandler {
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
-			throw new HttpException( "Comment does not exist", 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-edit-error-comment-missing' ), 400
+			);
 		}
 
 		if ( $comment->isDeleted() ) {
-			throw new HttpException( "Comment does not exist", 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-edit-error-comment-missing' ), 400
+			);
 		}
 		if ( $comment->getActor()->getId() !== $this->getAuthority()->getUser()->getId() ) {
-			throw new HttpException( "Cannot edit another user's comment", 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-edit-error-notself' ), 400
+			);
 		}
 
-		$text = $body[ 'text' ];
-		$comment->setWikitext( $text );
+		$html = $body[ 'html' ];
+		$comment->setHtml( $html );
 
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {
@@ -72,7 +78,7 @@ class ApiEditComment extends CommentApiHandler {
 		}
 
 		return new JsonBodyValidator( [
-			'text' => [
+			'html' => [
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'string',
 				ParamValidator::PARAM_REQUIRED => true

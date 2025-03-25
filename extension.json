@@ -69,7 +69,9 @@
 			"method": "GET",
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentsForPage",
 			"services": [
-				"TitleFactory"
+				"TitleFactory",
+				"ActorStore",
+				"DBLoadBalancerFactory"
 			]
 		},
 		{
@@ -83,7 +85,7 @@
 		},
 		{
 			"path": "/comments/v0/comment/{commentid}",
-			"method": "PATCH",
+			"method": "PUT",
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiEditComment",
 			"services": [
 				"Comments.CommentFactory"
@@ -128,12 +130,12 @@
 				"comment.js",
 				"App.vue",
 				"CommentsList.vue",
+				"Toolbar.vue",
 				"comments/CommentItem.vue",
 				"comments/NewCommentInput.vue",
-				"actions/RootActionHeader.vue",
-				"actions/RatingAction.vue",
-				"actions/DeleteAction.vue",
-				"actions/LinkAction.vue",
+				"comments/EditCommentInput.vue",
+				"comments/CommentAction.vue",
+				"comments/CommentRating.vue",
 				{
 					"name": "icons.json",
 					"callback": "MediaWiki\\ResourceLoader\\CodexModule::getIcons",
@@ -142,7 +144,8 @@
 						"cdxIconDownTriangle",
 						"cdxIconTrash",
 						"cdxIconLink",
-						"cdxIconSpeechBubbleAdd"
+						"cdxIconSpeechBubbleAdd",
+						"cdxIconEdit"
 					]
 				}
 			],
@@ -175,7 +178,13 @@
 				"comments-rating-upvote",
 				"comments-rating-downvote",
 				"comments-rating-remove",
-				"comments-load-error"
+				"comments-load-error",
+				"comments-submit-cooldown",
+				"comments-post-edit",
+				"comments-edited",
+				"comments-action-label-edit",
+				"comments-action-label-delete",
+				"comments-action-label-link"
 			],
 			"targets": [
 				"desktop",

@@ -39,7 +39,7 @@ const { cdxIconUpTriangle, cdxIconDownTriangle } = require( '../icons.json' );
 const api = new mw.Rest();
 
 module.exports = exports = defineComponent( {
-	name: 'RatingAction',
+	name: 'CommentRating',
 	components: {
 		CdxIcon
 	},

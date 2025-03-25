@@ -1,14 +1,6 @@
 <template>
 	<div class="comment-input-container">
-		<button
-			v-show="!isWritingComment"
-			class="comment-input-placeholder"
-			@click="isWritingComment = true"
-		>
-			<span v-if="isTopLevel">{{ $i18n( 'comments-post-placeholder-top-level' ).text() }}</span>
-			<span v-else>{{ $i18n( 'comments-post-placeholder-child' ).text() }}</span>
-		</button>
-		<div v-show="isWritingComment">
+		<div>
 			<div class="ve-area-wrapper">
 				<textarea
 					ref="input"
@@ -18,10 +10,9 @@
 			<div class="comment-input-actions">
 				<cdx-button :disabled="store.globalCooldown" action="progressive" weight="primary" @click="submitComment">
 					<span v-if="store.globalCooldown">{{ $i18n( 'comments-submit-cooldown', store.globalCooldown ).text() }}</span>
-					<span v-else-if="isTopLevel">{{ $i18n( 'comments-post-submit-top-level' ).text() }}</span>
-					<span v-else>{{ $i18n( 'comments-post-submit-child' ).text() }}</span>
+					<span v-else>{{ $i18n( 'comments-post-edit' ).text() }}</span>
 				</cdx-button>
-				<cdx-button action="destructive" @click="isWritingComment = false">
+				<cdx-button action="destructive" @click="store.isEditing = null">
 					{{ $i18n( 'cancel' ).text() }}
 				</cdx-button>
 			</div>
@@ -38,24 +29,23 @@ const Comment = require( '../comment.js' );
 const api = new mw.Rest();
 
 const config = mw.config.get( [
-	'wgArticleId',
 	'wgContentLanguage'
 ] );
 
 module.exports = exports = defineComponent( {
-	name: 'CommentInput',
+	name: 'EditCommentInput',
 	components: {
 		CdxButton
 	},
 	props: {
+		comment: {
+			type: Comment,
+			default: null,
+			required: true
+		},
 		value: {
 			type: String,
 			default: '',
-			required: false
-		},
-		parentId: {
-			type: Number,
-			default: null,
 			required: false
 		}
 	},
@@ -65,23 +55,14 @@ module.exports = exports = defineComponent( {
 
 			// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
 			// which will sanitize it before saving it in the database.
-			api.post( '/comments/v0/comment', {
-				pageid: config.wgArticleId,
-				parentid: this.$props.parentId,
+			api.put( `/comments/v0/comment/${this.$props.comment.id}`, {
 				html: html
 			} ).then( ( data ) => {
-				let newComment = new Comment( data.comment );
-
-				if ( this.$props.parentId ) {
-					// Reply to an existing comment, add it to the end of the children list
-					const ix = this.$data.store.comments.findIndex( ( c ) => c.id = this.$props.parentId );
-					this.$data.store.comments[ix].children.push( newComment );
-				} else {
-					// Top-level comment, just throw it to the top of the comments list
-					this.$data.store.comments.unshift( newComment );
-				}
-
-				this.$data.isWritingComment = false;
+				const newComment = new Comment( data.comment );
+				this.$props.comment.html = newComment.html;
+				this.$props.comment.wikitext = newComment.wikitext;
+				this.$props.comment.edited = newComment.edited;
+				this.$data.store.isEditing = null;
 			} ).fail( ( _, result ) => {
 				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
 					result.xhr.responseJSON, 'messageTranslations' ) ) {
@@ -105,34 +86,18 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
-			ve: null,
-			isWritingComment: false
+			ve: null
 		};
 	},
-	watch: {
-		isWritingComment( val ) {
-			if ( val === true && this.$data.ve === null ) {
-				const $input = $( this.$refs.input );
+	mounted() {
+		const $input = $( this.$refs.input );
 
-				if ( this.$props.value !== '' ) {
-					$input.val( this.$props.value );
-				}
+		if ( this.$props.value !== '' ) {
+			$input.val( this.$props.value );
+		}
 
-				// Create the VE instance for this editor
-				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
-			} else if ( val === true ) {
-				this.$data.ve.target.getSurface().getView().focus();
-			} else {
-				// When we're no longer writing a comment, kill the VE instance
-				this.$data.ve.target.destroy();
-				this.$data.ve = null;
-			}
-		}
-	},
-	computed: {
-		isTopLevel() {
-			return this.$props.parentId === null
-		}
+		// Create the VE instance for this editor
+		this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 	}
 } );
 </script>

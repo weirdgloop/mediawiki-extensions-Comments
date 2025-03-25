@@ -12,6 +12,7 @@ CREATE TABLE /*_*/com_comment (
   c_rating INT UNSIGNED DEFAULT 0 NOT NULL,
   c_html MEDIUMBLOB NOT NULL,
   c_wikitext MEDIUMBLOB NOT NULL,
+  c_edited_timestamp BINARY(14) DEFAULT NULL,
   INDEX c_timestamp (c_timestamp),
   INDEX c_page_timestamp (c_page, c_timestamp),
   INDEX c_actor_timestamp (c_actor, c_timestamp),

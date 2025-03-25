@@ -11,8 +11,10 @@ class Comment {
 		this.userRating = data.userRating || 0;
 		this.html = data.html || '';
 		this.wikitext = data.wikitext || '';
-		this.actor = data.actor || {};
-		this.timestamp = data.timestamp;
+		this.user = data.user || '';
+		this.created = data.created;
+		this.edited = data.edited || null;
+		this.ours = data.ours || false;
 
 		/** @type Comment[] */
 		this.children = [];

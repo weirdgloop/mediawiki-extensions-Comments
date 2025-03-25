@@ -12,6 +12,7 @@ CREATE TABLE com_comment (
   c_rating INT DEFAULT 0 NOT NULL,
   c_html TEXT NOT NULL,
   c_wikitext TEXT NOT NULL,
+  c_edited_timestamp TIMESTAMPTZ DEFAULT NULL,
   PRIMARY KEY(c_id)
 );
 

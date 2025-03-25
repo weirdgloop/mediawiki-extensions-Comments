@@ -5,8 +5,7 @@ namespace MediaWiki\Extension\Comments;
 use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\Extension\Comments\Models\CommentRating;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\User\ActorStore;
-use MediaWiki\User\UserIdentity;
+use stdClass;
 use Title;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
@@ -20,11 +19,6 @@ class CommentsPager {
 	public const SORT_DATE_ASC = 'sort_date_asc';
 	public const SORT_RATING_DESC = 'sort_rating_desc';
 	public const SORT_RATING_ASC = 'sort_rating_asc';
-
-	/**
-	 * @var ActorStore
-	 */
-	private ActorStore $actorStore;
 
 	/**
 	 * @var CommentFactory
@@ -47,9 +41,9 @@ class CommentsPager {
 	private bool $includeChildren = true;
 
 	/**
-	 * @var UserIdentity|null If set, will also retrieve the user's rating for each comment.
+	 * @var int|null If set, will retrieve the user's rating for each comment.
 	 */
-	private ?UserIdentity $userForRating = null;
+	private $currentActor = null;
 
 	/**
 	 * @var bool Set to true to include deleted comments
@@ -85,30 +79,30 @@ class CommentsPager {
 	private string $sortMethod;
 
 	/**
-	 * Object containing two keys for each comment:
+	 * Object containing three keys for each comment:
 	 * - `c`: the Comment object
-	 * - `ur`: the CommentRating for the provided user ($this->userForRating), if provided
-	 * @var object[]
+	 * - `ur`: the CommentRating for the provided user ($this->currentActor), if provided
+	 * - `ours`: whether the comment belongs to $this->currentActor, if provided
+	 * @var stdClass[]
 	 */
 	private array $res = [];
 
 	public function __construct(
 		array $options,
-		UserIdentity $userForRating = null,
+		int $currentActor = null,
 		Title $targetTitle = null,
 		Comment $parent = null,
 		string $sortMethod = self::SORT_DATE_DESC
 	) {
 		$services = MediaWikiServices::getInstance();
 
-		if ( $userForRating ) {
-			$this->userForRating = $userForRating;
+		if ( $currentActor ) {
+			$this->currentActor = $currentActor;
 		}
 		if ( $targetTitle ) {
 			$this->targetTitle = $targetTitle;
 		}
 
-		$this->actorStore = $services->getActorStore();
 		$this->commentFactory = $services->getService( 'Comments.CommentFactory' );
 		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 
@@ -210,8 +204,6 @@ class CommentsPager {
 	 * @return void
 	 */
 	public function execute() {
-		$actor = $this->userForRating ? $this->actorStore->findActorId( $this->userForRating, $this->db ) : null;
-
 		$conds = [
 			'c_page' => $this->targetTitle->getId()
 		];
@@ -236,10 +228,10 @@ class CommentsPager {
 						$opts
 					) );
 
-			if ( !is_null( $actor )) {
+			if ( $this->currentActor !== null ) {
 				$childSelect->leftJoin( 'com_rating', null, [
 					'cr_comment = c_id',
-					'cr_actor' => $actor
+					'cr_actor' => $this->currentActor
 				] );
 			}
 
@@ -270,10 +262,10 @@ class CommentsPager {
 					'a'
 				);
 
-			if ( !is_null( $actor )) {
+			if ( $this->currentActor !== null ) {
 				$parentSelect->leftJoin( 'com_rating', null, [
 					'cr_comment = c_id',
-					'cr_actor' => $actor
+					'cr_actor' => $this->currentActor
 				] );
 			}
 
@@ -335,8 +327,12 @@ class CommentsPager {
 			}
 
 			$comments[] = [
+				// The comment object, returned as-is
 				'c' => $c,
-				'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0
+				// The current user's rating, if we retrieved it
+				'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
+				// Whether this comment belongs to the current actor
+				'ours' => $this->currentActor === $c->mActorId
 			];
 		}
 

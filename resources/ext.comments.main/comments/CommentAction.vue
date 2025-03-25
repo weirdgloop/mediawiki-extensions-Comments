@@ -1,11 +1,11 @@
 <template>
 	<button
 		class="comment-action-btn"
-		title="Delete comment"
-		@click="onButtonClick"
+		:title="title"
+		@click="onClick"
 	>
 		<cdx-icon
-			:icon="cdxIconTrash"
+			:icon="icon"
 			size="small"
 		></cdx-icon>
 	</button>
@@ -14,25 +14,28 @@
 <script>
 const { defineComponent } = require( 'vue' );
 const { CdxIcon } = require( '@wikimedia/codex' );
-const { cdxIconTrash } = require( '../icons.json' );
+const Comment = require( '../comment.js' );
 
 module.exports = exports = defineComponent( {
 	name: 'DeleteAction',
 	components: {
 		CdxIcon
 	},
-	props: [
-		'commentId'
-	],
-	setup() {
-		const onButtonClick = function ( e ) {
-			// TODO: api call to delete the comment
-		};
-
-		return {
-			onButtonClick,
-			cdxIconTrash
-		};
+	props: {
+		icon: {
+			default: null,
+			required: true
+		},
+		onClick: {
+			type: Function,
+			default: null,
+			required: true
+		},
+		title: {
+			type: String,
+			default: '',
+			required: false
+		}
 	}
 } );
 </script>

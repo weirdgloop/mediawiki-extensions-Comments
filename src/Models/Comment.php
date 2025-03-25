@@ -33,7 +33,10 @@ class Comment {
 	public $mActorId;
 
 	/** @var string */
-	public $mTimestamp;
+	public $mCreatedTimestamp;
+
+	/** @var string|null */
+	public $mEditedTimestamp = null;
 
 	/** @var Comment|null */
 	private $mParent = null;
@@ -66,7 +69,7 @@ class Comment {
 	 * @internal
 	 */
 	public function __construct() {
-		$this->mTimestamp = wfTimestamp( TS_ISO_8601 );
+		$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601 );
 
 		$services = MediaWikiServices::getInstance();
 		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
@@ -231,7 +234,7 @@ class Comment {
 	 * @return string
 	 */
 	public function getTimestamp() {
-		return $this->mTimestamp;
+		return $this->mCreatedTimestamp;
 	}
 
 	/**
@@ -243,7 +246,28 @@ class Comment {
 	 * @return $this
 	 */
 	public function setTimestamp( $ts ) {
-		$this->mTimestamp = wfTimestamp( TS_ISO_8601, $ts );
+		$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601, $ts );
+		return $this;
+	}
+
+	/**
+	 * The edited timestamp for the comment
+	 * @return string
+	 */
+	public function getEditedTimestamp() {
+		return $this->mEditedTimestamp;
+	}
+
+	/**
+	 * Sets the edited timestamp for this comment.
+	 *
+	 * This method returns the current Comment object for easier chaining.
+	 *
+	 * @param string|null $ts
+	 * @return $this
+	 */
+	public function setEditedTimestamp( $ts ) {
+		$this->mEditedTimestamp = $ts ? wfTimestamp( TS_ISO_8601, $ts ) : null;
 		return $this;
 	}
 
@@ -359,7 +383,7 @@ class Comment {
 			}
 
 			$transform = MediaWikiServices::getInstance()->getHtmlTransformFactory()
-				->getHtmlToContentTransform( $this->mHtml, $this->mTitle );
+				->getHtmlToContentTransform( $this->mHtml, $this->getTitle() );
 
 			$transform->setOptions( [
 				'contentmodel' => CONTENT_MODEL_WIKITEXT,
@@ -431,7 +455,7 @@ class Comment {
 			'c_page' => $this->mPageId,
 			'c_actor' => $this->mActorId,
 			'c_parent' => $this->mParent->mId,
-			'c_timestamp' => wfTimestamp( TS_MW, $this->mTimestamp ),
+			'c_timestamp' => wfTimestamp( TS_MW, $this->mCreatedTimestamp ),
 			'c_deleted' => (int)$this->mDeleted,
 			'c_rating' => $this->mRating,
 			'c_html' => $this->mHtml,
@@ -449,12 +473,14 @@ class Comment {
 			// Set the ID of this object to the newly inserted object ID
 			$this->mId = $this->dbw->insertId();
 		} else {
-			// Perform an update instead
-			$set = [ 'c_id' => $this->mId ] + $row;
+			$this->mEditedTimestamp = wfTimestamp( TS_ISO_8601 );
+			$row[ 'c_edited_timestamp' ] = $this->mEditedTimestamp;
 
+			// Perform an update instead
 			$this->dbw->newUpdateQueryBuilder()
 				->table( self::TABLE_NAME )
-				->set( $set )
+				->set( $row )
+				->where( [ 'c_id' => $this->mId ] )
 				->caller( __METHOD__ )
 				->execute();
 		}
@@ -466,14 +492,11 @@ class Comment {
 	 * @return array
 	 */
 	public function toArray() {
-		$actor = $this->getActor();
 		return [
 			'id' => $this->mId,
-			'timestamp' => $this->mTimestamp,
-			'actor' => $this->mActor ? [
-				'id' => $actor->getId(),
-				'name' => $actor->getName()
-			] : null,
+			'created' => $this->mCreatedTimestamp,
+			'edited' => $this->mEditedTimestamp,
+			'user' => $this->getActor()->getName(),
 			'deleted' => $this->mDeleted,
 			'rating' => $this->mRating,
 			'html' => $this->mHtml,

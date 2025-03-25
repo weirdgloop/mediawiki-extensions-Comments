@@ -17,11 +17,11 @@
 <script>
 const { defineComponent, ref } = require( 'vue' );
 const { CdxSelect, CdxField, CdxButton, CdxIcon } = require( '@wikimedia/codex' );
-const store = require( '../store.js' );
+const store = require( './store.js' );
 const { cdxIconSpeechBubbleAdd } = require( '../icons.json' );
 
 module.exports = exports = defineComponent( {
-	name: 'ActionHeader',
+	name: 'Toolbar',
 	components: {
 		CdxSelect,
 		CdxField,

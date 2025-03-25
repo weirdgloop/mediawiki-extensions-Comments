@@ -46,13 +46,6 @@ module.exports = exports = defineComponent( {
 	components: {
 		CommentItem
 	},
-	props: {
-		sortMethod: {
-			type: String,
-			default: '',
-			required: true
-		}
-	},
 	data() {
 		return {
 			store,

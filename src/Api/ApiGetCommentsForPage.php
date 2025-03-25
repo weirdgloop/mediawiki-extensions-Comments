@@ -5,10 +5,14 @@ namespace MediaWiki\Extension\Comments\Api;
 use MediaWiki\Extension\Comments\CommentsPager;
 use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\Extension\Comments\Utils;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\ActorStore;
 use Wikimedia\ParamValidator\ParamValidator;
+use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\LBFactory;
 
 class ApiGetCommentsForPage extends SimpleHandler {
 	/**
@@ -16,8 +20,24 @@ class ApiGetCommentsForPage extends SimpleHandler {
 	 */
 	private TitleFactory $titleFactory;
 
-	public function __construct( TitleFactory $titleFactory ) {
+	/**
+	 * @var ActorStore
+	 */
+	private ActorStore $actorStore;
+
+	/**
+	 * @var IDatabase
+	 */
+	private $dbr;
+
+	public function __construct(
+		TitleFactory $titleFactory,
+		ActorStore $actorStore,
+		LBFactory $factory
+	) {
 		$this->titleFactory = $titleFactory;
+		$this->actorStore = $actorStore;
+		$this->dbr = $factory->getReplicaDatabase();
 	}
 
 	/**
@@ -34,11 +54,14 @@ class ApiGetCommentsForPage extends SimpleHandler {
 
 		$showDeleted = Utils::canUserModerate( $this->getAuthority() );
 
+		// Do not use ActorStore::acquireActorId, otherwise a new actor ID will be made for every anonymous page view
+		$actor = $this->actorStore->findActorId( $this->getAuthority()->getUser(), $this->dbr );
+
 		$pager = new CommentsPager(
 			[
 				'includeDeleted' => $showDeleted
 			],
-			$this->getAuthority()->getUser(),
+			$actor,
 			$title,
 			null,
 			$params[ 'sort' ]
@@ -64,7 +87,8 @@ class ApiGetCommentsForPage extends SimpleHandler {
 			} else {
 				$comments[] = $r['c']->toArray() + [
 					'children' => [],
-					'userRating' => $r['ur']
+					'userRating' => $r['ur'],
+					'ours' => $r['ours']
 				];
 			}
 		}
@@ -74,7 +98,8 @@ class ApiGetCommentsForPage extends SimpleHandler {
 			foreach ( $comments as $index => $topLevelComment ) {
 				if ( $topLevelComment[ 'id' ] === $child['c']->mParentId ) {
 					$comments[ $index ][ 'children' ][] = $child['c']->toArray() + [
-						'userRating' => $child['ur']
+						'userRating' => $child['ur'],
+						'ours' => $child['ours']
 					];
 				}
 			}

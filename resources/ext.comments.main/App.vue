@@ -1,6 +1,6 @@
 <template>
 	<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
-	<root-action-header></root-action-header>
+	<toolbar></toolbar>
 	<new-comment-input></new-comment-input>
 	<comments-list></comments-list>
 </template>
@@ -11,7 +11,7 @@ const { CdxSelect, CdxField } = require( '@wikimedia/codex' );
 const store = require( './store.js' );
 const NewCommentInput = require( './comments/NewCommentInput.vue' );
 const CommentsList = require( './CommentsList.vue' );
-const RootActionHeader = require( './actions/RootActionHeader.vue' );
+const Toolbar = require( './Toolbar.vue' );
 
 module.exports = exports = defineComponent( {
 	name: 'App',
@@ -22,16 +22,23 @@ module.exports = exports = defineComponent( {
 	},
 	components: {
 		NewCommentInput,
-		RootActionHeader,
+		Toolbar,
 		CommentsList,
 		CdxSelect,
 		CdxField
 	},
 	mounted() {
+		const self = this;
 		// When the app first loads, determine whether we should be displaying the comments in a read-only form
 		let readOnly = mw.config.get( 'wgComments' ).readOnly;
 
 		this.$data.store.isReadOnly = readOnly;
+
+		setInterval( () => {
+			if ( self.$data.store.globalCooldown > 0 ) {
+				self.$data.store.globalCooldown -= 1;
+			}
+		}, 1000 )
 	}
 } );
 </script>
