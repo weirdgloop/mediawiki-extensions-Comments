@@ -5,10 +5,13 @@ namespace MediaWiki\Extension\Comments\Api;
 use InvalidArgumentException;
 use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
-class ApiVoteComment extends CommentApiHandler {
+class ApiVoteComment extends SimpleHandler {
 	/**
 	 * @var CommentFactory
 	 */
@@ -22,8 +25,6 @@ class ApiVoteComment extends CommentApiHandler {
 	 * @throws HttpException
 	 */
 	public function run() {
-		parent::run();
-
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
 
@@ -33,11 +34,15 @@ class ApiVoteComment extends CommentApiHandler {
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
-			throw new HttpException( "Comment does not exist", 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+			);
 		}
 
 		if ( $comment->isDeleted() ) {
-			throw new HttpException( "Comment does not exist", 400 );
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+			);
 		}
 
 		$user = $this->getAuthority()->getUser();

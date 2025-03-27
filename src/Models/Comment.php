@@ -133,7 +133,7 @@ class Comment {
 	 */
 	public function setActor( $user ) {
 		$this->mActor = $user;
-		$this->mActorId = $this->actorStore->findActorId( $user, $this->dbw );
+		$this->mActorId = $this->actorStore->acquireActorId( $user, $this->dbw );
 		return $this;
 	}
 
