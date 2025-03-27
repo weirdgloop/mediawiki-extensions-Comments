@@ -55,7 +55,7 @@ module.exports = exports = defineComponent( {
 
 			// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
 			// which will sanitize it before saving it in the database.
-			api.put( `/comments/v0/comment/${this.$props.comment.id}`, {
+			api.put( `/comments/v0/comment/${this.$props.comment.id}/edit`, {
 				html: html
 			} ).then( ( data ) => {
 				const newComment = new Comment( data.comment );

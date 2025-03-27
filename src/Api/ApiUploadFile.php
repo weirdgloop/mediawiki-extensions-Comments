@@ -5,11 +5,12 @@ namespace MediaWiki\Extension\Comments\Api;
 use MediaWiki\Extension\Comments\Files\CommentFileService;
 use MediaWiki\Extension\Comments\Files\CommentFileUpload;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\SimpleHandler;
 use UploadBase;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
-class ApiUploadFile extends CommentApiHandler {
+class ApiUploadFile extends SimpleHandler {
 	/** @var CommentFileService */
 	private $commentFileService;
 
@@ -26,7 +27,7 @@ class ApiUploadFile extends CommentApiHandler {
 			throw new LocalizedHttpException( new MessageValue( 'uploaddisabledtext' ) );
 		}
 		$permError = $this->commentFileService->isAllowedToUpload( $this->getAuthority() );
-		if ( $permError !== null ) {
+		if ( $permError !== true ) {
 			throw new LocalizedHttpException( $permError, 403 );
 		}
 

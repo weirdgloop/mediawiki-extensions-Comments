@@ -4,19 +4,25 @@ namespace MediaWiki\Extension\Comments;
 
 use MediaWiki\Permissions\Authority;
 use MediaWiki\User\User;
+use Wikimedia\Message\MessageValue;
 
 class Utils {
 	/**
-	 * Returns whether the given user can comment or not.
+	 * If the user cannot comment, this method returns a MessageValue object indicating why.
 	 * @param User|Authority $userOrAuthority
-	 * @return bool
+	 * @return MessageValue|true
 	 */
 	public static function canUserComment( $userOrAuthority ) {
+		if ( !$userOrAuthority->isAllowed( 'comments' ) ) {
+			return new MessageValue( 'comments-submit-error-noperm' );
+		}
+
 		$block = $userOrAuthority->getBlock();
-		return (
-			$userOrAuthority->isAllowed( 'comments' ) &&
-			( !$block || ( $block->isSitewide() || $block->appliesToRight( 'comments' ) ) )
-		);
+		if ( $block && ( $block->isSitewide() || $block->appliesToRight( 'comments' ) ) ) {
+			return new MessageValue( 'comments-submit-error-blocked' );
+		}
+
+		return true;
 	}
 
 	/**

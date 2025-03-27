@@ -31,9 +31,9 @@ class CommentsPager {
 	private IDatabase $db;
 
 	/**
-	 * @var Title
+	 * @var int|null
 	 */
-	private Title $targetTitle;
+	private int $targetPageId;
 
 	/**
 	 * @var bool Set to true to include child comments. Only has effect if $this->parent is null.
@@ -51,14 +51,9 @@ class CommentsPager {
 	private bool $includeDeleted;
 
 	/**
-	 * @var bool Set to true to show only deleted comments
+	 * @var int|null
 	 */
-	private bool $deletedOnly;
-
-	/**
-	 * @var Comment|null
-	 */
-	private ?Comment $parent = null;
+	private $targetCommentId = null;
 
 	/**
 	 * The continue offset to use in the database query.
@@ -87,11 +82,18 @@ class CommentsPager {
 	 */
 	private array $res = [];
 
+	/**
+	 * @param array $options
+	 * @param int|null $currentActor
+	 * @param Title|int|null $targetTitle
+	 * @param Comment|int|null $targetComment
+	 * @param string $sortMethod
+	 */
 	public function __construct(
 		array $options,
 		int $currentActor = null,
-		Title $targetTitle = null,
-		Comment $parent = null,
+		$targetTitle = null,
+		$targetComment = null,
 		string $sortMethod = self::SORT_DATE_DESC
 	) {
 		$services = MediaWikiServices::getInstance();
@@ -99,17 +101,20 @@ class CommentsPager {
 		if ( $currentActor ) {
 			$this->currentActor = $currentActor;
 		}
-		if ( $targetTitle ) {
-			$this->targetTitle = $targetTitle;
+
+		if ( $targetTitle !== null ) {
+			$this->targetPageId = ( $targetTitle instanceof Title ) ? $targetTitle->getId() : $targetTitle;
+		}
+
+		if ( $targetComment !== null ) {
+			$this->targetCommentId = ( $targetComment instanceof Comment ) ? $targetComment->getId() : $targetComment;
 		}
 
 		$this->commentFactory = $services->getService( 'Comments.CommentFactory' );
 		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 
-		$this->deletedOnly = !empty( $options['deletedOnly'] );
 		$this->includeDeleted = !empty( $options['includeDeleted'] );
 		$this->sortMethod = $sortMethod;
-		$this->parent = $parent;
 	}
 
 	/**
@@ -204,29 +209,49 @@ class CommentsPager {
 	 * @return void
 	 */
 	public function execute() {
-		$conds = [
-			'c_page' => $this->targetTitle->getId()
-		];
+		$conds = [];
+
+		if ( !empty( $this->targetPageId ) ) {
+			$conds[ 'c_page' ] = $this->targetPageId;
+		}
+
+		if ( !$this->includeDeleted ) {
+			$conds[ 'c_deleted' ] = false;
+		}
+
+		if ( $this->targetCommentId ) {
+			$conds[ 'c_id' ] = $this->targetCommentId;
+		}
 
 		$opts = [
 			'ORDER BY' => $this->getOrderCondition()
 		];
 
-		if ( $this->includeChildren && !$this->parent ) {
-			$conds[ 'c_parent' ] = null;
-
+		if ( $this->includeChildren ) {
 			$uqb = $this->db->newUnionQueryBuilder()->all();
+
+			$childConds = [];
+
+			if ( !$this->includeDeleted ) {
+				$childConds[ 'c_deleted' ] = false;
+			}
+
+			if ( $this->targetCommentId !== null ) {
+				$childConds[ 'c_parent' ] = $this->targetCommentId;
+			} else {
+				$childConds[] = 'c_parent IN ' . $this->db->buildSelectSubquery(
+					Comment::TABLE_NAME,
+					'c_id',
+					$conds,
+					__METHOD__,
+					$opts
+				);
+			}
 
 			$childSelect = $this->db->newSelectQueryBuilder()
 				->select( '*' )
 				->from( Comment::TABLE_NAME )
-				->where( 'c_parent IN ' . $this->db->buildSelectSubquery(
-						Comment::TABLE_NAME,
-						'c_id',
-						$conds,
-						__METHOD__,
-						$opts
-					) );
+				->where( $childConds );
 
 			if ( $this->currentActor !== null ) {
 				$childSelect->leftJoin( 'com_rating', null, [
@@ -248,6 +273,8 @@ class CommentsPager {
 					$opts[ 'OFFSET' ] = $this->continue;
 				}
 			}
+
+			$conds[ 'c_parent' ] = null;
 
 			$parentSelect = $this->db->newSelectQueryBuilder()
 				->select( '*' )
@@ -272,10 +299,6 @@ class CommentsPager {
 			$uqb->add( $parentSelect );
 
 			return $this->reallyDoQuery( $uqb->caller( __METHOD__ ) );
-		}
-
-		if ( $this->parent ) {
-			$conds[ 'c_parent' ] = $this->parent->getId();
 		}
 
 		if ( $this->continue !== null ) {

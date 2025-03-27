@@ -4,13 +4,15 @@ namespace MediaWiki\Extension\Comments\Api;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Comments\CommentFactory;
+use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
-class ApiEditComment extends CommentApiHandler {
+class ApiEditComment extends SimpleHandler {
 	/**
 	 * @var CommentFactory
 	 */
@@ -24,7 +26,20 @@ class ApiEditComment extends CommentApiHandler {
 	 * @throws HttpException
 	 */
 	public function run() {
-		parent::run();
+		if ( $this->getRequest()->getMethod() === 'PUT' ) {
+			return $this->runEditComment();
+		} else {
+			return $this->runDeleteComment();
+		}
+	}
+
+	private function runEditComment() {
+		$auth = $this->getAuthority();
+
+		$canComment = Utils::canUserComment( $auth );
+		if ( $canComment !== true ) {
+			throw new LocalizedHttpException( $canComment, 403 );
+		}
 
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
@@ -34,18 +49,18 @@ class ApiEditComment extends CommentApiHandler {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-edit-error-comment-missing' ), 400
+				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 
 		if ( $comment->isDeleted() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-edit-error-comment-missing' ), 400
+				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 		if ( $comment->getActor()->getId() !== $this->getAuthority()->getUser()->getId() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-edit-error-notself' ), 400
+				new MessageValue( 'comments-generic-error-notself' ), 400
 			);
 		}
 
@@ -59,10 +74,45 @@ class ApiEditComment extends CommentApiHandler {
 			);
 		}
 
+		$comment->setEditedTimestamp( wfTimestamp( TS_ISO_8601 ) );
 		$comment->save();
 
 		return $this->getResponseFactory()->createJson( [
 			'comment' => $comment->toArray()
+		] );
+	}
+
+	private function runDeleteComment() {
+		$body = $this->getValidatedBody();
+		$params = $this->getValidatedParams();
+		$commentId = (int)$params[ 'commentid' ];
+		$delete = (bool)$body[ 'delete' ];
+
+		try {
+			$comment = $this->commentFactory->newFromId( $commentId );
+		} catch ( InvalidArgumentException $ex ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+			);
+		}
+
+		$ownComment = $comment->getActor()->getId() === $this->getAuthority()->getUser()->getId();
+		$isMod = Utils::canUserModerate( $this->getAuthority() );
+
+		if ( $ownComment || $isMod ) {
+			if ( $comment->isDeleted() !== $delete ) {
+				$comment->setDeleted( $delete );
+				$comment->save();
+			}
+		} else {
+			// Not user's own comment, no permission
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-generic-error-notself' ), 400
+			);
+		}
+
+		return $this->getResponseFactory()->createJson( [
+			'deleted' => $comment->isDeleted()
 		] );
 	}
 
@@ -77,13 +127,26 @@ class ApiEditComment extends CommentApiHandler {
 			);
 		}
 
-		return new JsonBodyValidator( [
-			'html' => [
-				self::PARAM_SOURCE => 'body',
-				ParamValidator::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_REQUIRED => true
-			],
-		] );
+		$body = [];
+		if ( $this->getRequest()->getMethod() === 'PUT' ) {
+			$body = [
+				'html' => [
+					self::PARAM_SOURCE => 'body',
+					ParamValidator::PARAM_TYPE => 'string',
+					ParamValidator::PARAM_REQUIRED => true
+				]
+			];
+		} else {
+			$body = [
+				'delete' => [
+					self::PARAM_SOURCE => 'body',
+					ParamValidator::PARAM_TYPE => 'boolean',
+					ParamValidator::PARAM_REQUIRED => true
+				]
+			];
+		}
+
+		return new JsonBodyValidator( $body );
 	}
 
 	/**

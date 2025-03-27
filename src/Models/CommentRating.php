@@ -69,12 +69,13 @@ class CommentRating {
 		}
 
 		$row = $dbr->newSelectQueryBuilder()
+			->select( '*' )
 			->from( 'com_rating' )
-			->where( [ 'cr_comment' => $comment->getId(), 'cr_actor' => $actor ] )
+			->where( [ 'cr_comment' => $comment, 'cr_actor' => $actor ] )
 			->caller( __METHOD__ )
 			->fetchRow();
 
-		return $row ? CommentRating::newFromRow( $row ) : null;
+		return $row ? self::newFromRow( $row ) : null;
 	}
 
 	/**

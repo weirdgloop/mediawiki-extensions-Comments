@@ -3,14 +3,16 @@
 namespace MediaWiki\Extension\Comments\Api;
 
 use MediaWiki\Extension\Comments\CommentFactory;
+use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
 use MediaWiki\Title\TitleFactory;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
-class ApiPostComment extends CommentApiHandler {
+class ApiPostComment extends SimpleHandler {
 	/**
 	 * @var TitleFactory
 	 */
@@ -30,7 +32,11 @@ class ApiPostComment extends CommentApiHandler {
 	 * @throws HttpException
 	 */
 	public function run() {
-		parent::run();
+		$auth = $this->getAuthority();
+		$canComment = Utils::canUserComment( $auth );
+		if ( $canComment !== true ) {
+			throw new LocalizedHttpException( $canComment, 403 );
+		}
 
 		$body = $this->getValidatedBody();
 		$pageid = (int)$body[ 'pageid' ];

@@ -7,7 +7,7 @@
 		></comment-item>
 		<button
 			v-if="moreContinue"
-			class="comment-list-footer"
+			class="comment-info-full"
 			@click="loadComments"
 		>
 			{{ $i18n( 'comments-continue' ).text() }}
@@ -20,7 +20,7 @@
 		</div>
 		<div
 			v-else-if="$data.initialLoad && !store.comments.length"
-			class="comment-list-footer"
+			class="comment-info-full"
 		>
 			{{ $i18n( 'comments-empty' ).text() }}
 		</div>
@@ -49,39 +49,69 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
+			// For tracking whether the user has already made a first API call, when this element is in view
 			initialLoad: false,
 			moreContinue: null,
 			error: null
 		};
 	},
 	methods: {
+		resetComments() {
+			this.$data.store.comments = [];
+			this.$data.moreContinue = null;
+			this.loadComments();
+		},
 		loadComments() {
 			this.$data.error = null;
 
-			const qsp = new URLSearchParams( {
-				limit: config.wgComments.resultsPerPage,
-				sort: this.$data.store.sortMethod
-			} );
-			if ( this.$data.moreContinue ) {
-				qsp.set( 'continue', this.$data.moreContinue );
-			}
+			if ( this.$data.store.singleComment ) {
+				// Attempt to get the requested comment so that we can display it
+				api.get(`/comments/v0/comment/${ this.$data.store.singleComment }?sort=${ this.$data.store.sortMethod }` )
+					.done( ( res ) => {
+						this.$data.store.comments = [ new Comment( res.comment ) ];
+						this.$data.store.isMod = res.isMod;
+					} )
+					.fail( ( _, data ) => {
+						if ( data && data.xhr && data.xhr.status ) {
+							this.$data.error = data.xhr.status;
+						} else {
+							this.$data.error = true;
+						}
+					} )
+			} else {
+				// Get a list of all comments for the current page
+				const qsp = new URLSearchParams( {
+					limit: config.wgComments.resultsPerPage,
+					sort: this.$data.store.sortMethod
+				} );
+				if ( this.$data.moreContinue ) {
+					qsp.set( 'continue', this.$data.moreContinue );
+				}
 
-			api.get( `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }` )
-				.done( ( res ) => {
-					const comments = [];
-					for ( const data of res.comments ) {
-						comments.push( new Comment( data ) );
-					}
-					this.$data.store.comments = this.$data.store.comments.concat( comments );
-					this.$data.moreContinue = res.query.continue;
-				} )
-				.fail( ( _, data ) => {
-					if ( data && data.xhr && data.xhr.status ) {
-						this.$data.error = data.xhr.status;
-					} else {
-						this.$data.error = true;
-					}
-				} )
+				api.get( `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }` )
+					.done( ( res ) => {
+						const comments = [];
+						for ( const data of res.comments ) {
+							comments.push( new Comment( data ) );
+						}
+						this.$data.store.comments = this.$data.store.comments.concat( comments );
+						this.$data.store.isMod = res.isMod;
+						this.$data.moreContinue = res.query.continue;
+					} )
+					.fail( ( _, data ) => {
+						if ( data && data.xhr && data.xhr.status ) {
+							this.$data.error = data.xhr.status;
+						} else {
+							this.$data.error = true;
+						}
+					} )
+			}
+		},
+		checkVisible() {
+			if ( isElementInView( this.$el ) && this.$data.store.ready && !this.$data.initialLoad ) {
+				this.$data.initialLoad = true;
+				this.loadComments();
+			}
 		}
 	},
 	watch: {
@@ -89,22 +119,25 @@ module.exports = exports = defineComponent( {
 			immediate: false,
 			handler() {
 				// When the sort method changes, reset the list and make a request again
-				this.$data.store.comments = [];
-				this.$data.moreContinue = null;
-				this.loadComments();
+				this.resetComments();
+			}
+		},
+		'store.ready': function( val ) {
+			if ( val === true ) {
+				this.checkVisible();
+			}
+		},
+		'store.singleComment': {
+			immediate: false,
+			handler( oldVal, newVal ) {
+				if ( oldVal !== newVal && newVal !== null ) {
+					this.resetComments();
+				}
 			}
 		}
 	},
 	mounted() {
-		const checkVisible = () => {
-			if ( isElementInView( this.$el ) && !this.$data.initialLoad ) {
-				this.$data.initialLoad = true;
-				this.loadComments();
-			}
-		};
-
-		checkVisible();
-		$( window ).on( 'DOMContentLoaded load resize scroll', checkVisible );
+		$( window ).on( 'DOMContentLoaded load resize scroll', this.checkVisible );
 	}
 } );
 </script>

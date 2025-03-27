@@ -1,7 +1,16 @@
 <template>
 	<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
 	<toolbar></toolbar>
-	<new-comment-input></new-comment-input>
+	<new-comment-input v-if="store.singleComment === null"></new-comment-input>
+	<div
+		v-if="store.singleComment !== null"
+		class="comment-info-full"
+		style="margin-bottom: 1em;"
+	>
+		<span>{{ $i18n( 'comments-single-mode-banner' ) }}</span>
+		&#183;
+		<a @click="disableSingleComment">{{ $i18n( 'comments-single-mode-viewall' ) }}</a>
+	</div>
 	<comments-list></comments-list>
 </template>
 
@@ -17,7 +26,7 @@ module.exports = exports = defineComponent( {
 	name: 'App',
 	data() {
 		return {
-			store,
+			store
 		};
 	},
 	components: {
@@ -27,10 +36,25 @@ module.exports = exports = defineComponent( {
 		CdxSelect,
 		CdxField
 	},
+	methods: {
+		disableSingleComment() {
+			this.$data.store.singleComment = null;
+			const url = new URL( window.location )
+			url.searchParams.delete( 'commentid' );
+			history.pushState(null, '', url);
+		}
+	},
 	mounted() {
 		const self = this;
 		// When the app first loads, determine whether we should be displaying the comments in a read-only form
 		let readOnly = mw.config.get( 'wgComments' ).readOnly;
+
+		// Get current URL, and determine whether we should only be showing a single comment
+		let currentUrl = new URL( window.location );
+		let singleCommentId = currentUrl.searchParams.get( 'commentid' );
+		if ( singleCommentId ) {
+			this.$data.store.singleComment = singleCommentId;
+		}
 
 		this.$data.store.isReadOnly = readOnly;
 
@@ -39,6 +63,8 @@ module.exports = exports = defineComponent( {
 				self.$data.store.globalCooldown -= 1;
 			}
 		}, 1000 )
+
+		this.$data.store.ready = true;
 	}
 } );
 </script>

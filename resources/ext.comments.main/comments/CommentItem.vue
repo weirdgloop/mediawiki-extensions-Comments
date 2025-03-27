@@ -1,6 +1,6 @@
 <template>
-	<div class="ext-comments-comment-item" :data-comment-id="comment.id">
-		<comment-rating :comment="comment"></comment-rating>
+	<div class="ext-comments-comment-item" :data-comment-id="comment.id" :data-deleted="comment.deleted">
+		<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
 		<div class="comment-body">
 			<div class="comment-header">
 				<div class="comment-author-wrapper">
@@ -20,18 +20,26 @@
 				</div>
 				<div class="comment-actions">
 					<comment-action
-						v-if="!store.readOnly && comment.ours"
+						v-if="!store.readOnly && !comment.deleted && comment.ours"
+						class="comment-action-edit"
 						:disabled="store.isEditing === comment.id"
 						:icon="cdxIconEdit"
 						:on-click="() => store.isEditing = comment.id"
 						:title="$i18n( 'comments-action-label-edit' ).text()"
 					></comment-action>
 					<comment-action
-						v-if="!store.readOnly"
-						:icon="cdxIconTrash"
-						:title="$i18n( 'comments-action-label-delete' ).text()"
+						v-if="!store.readOnly && ( comment.ours || store.isMod )"
+						class="comment-action-delete"
+						:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
+						:on-click="deleteComment"
+						:title="$i18n(
+							comment.deleted ? 'comments-action-label-undelete' : 'comments-action-label-delete'
+						).text()"
 					></comment-action>
 					<comment-action
+						v-if="!comment.deleted"
+						class="comment-action-link"
+						:on-click="linkComment"
 						:icon="cdxIconLink"
 						:title="$i18n( 'comments-action-label-link' ).text()"
 					></comment-action>
@@ -47,7 +55,7 @@
 					:parent-id="comment.id"
 				></comment-item>
 			</div>
-			<new-comment-input v-if="!parentId" :parent-id="comment.id"></new-comment-input>
+			<new-comment-input v-if="!parentId && !comment.deleted" :parent-id="comment.id"></new-comment-input>
 		</div>
 	</div>
 </template>
@@ -60,7 +68,9 @@ const CommentAction = require( './CommentAction.vue' );
 const CommentRating = require( './CommentRating.vue' )
 const NewCommentInput = require( '../comments/NewCommentInput.vue' );
 const EditCommentInput = require( '../comments/EditCommentInput.vue' );
-const { cdxIconTrash, cdxIconLink, cdxIconEdit } = require( '../icons.json' );
+const { cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore } = require( '../icons.json' );
+
+const api = new mw.Rest();
 
 module.exports = exports = defineComponent( {
 	name: 'CommentItem',
@@ -101,11 +111,44 @@ module.exports = exports = defineComponent( {
 			return title.getUrl();
 		}
 	},
+	methods: {
+		deleteComment() {
+			api.delete( `/comments/v0/comment/${this.$props.comment.id}/edit`, {
+				delete: !this.$props.comment.deleted
+			} ).then( ( data ) => {
+				this.$props.comment.deleted = data.deleted;
+			} ).fail( ( _, result ) => {
+				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
+					result.xhr.responseJSON, 'messageTranslations' ) ) {
+					if ( result.xhr.responseJSON.errorKey === 'comments-submit-error-spam' ) {
+						// If the comment was rejected for spam/abuse, add a small cooldown
+						this.$data.store.globalCooldown = 10;
+					}
+
+					if ( config.wgContentLanguage in result.xhr.responseJSON.messageTranslations ) {
+						error = result.xhr.responseJSON.messageTranslations[ config.wgContentLanguage ];
+					} else {
+						error = result.xhr.responseJSON.messageTranslations.en
+					}
+				} else {
+					error = mw.Message( 'unknown-error' );
+				}
+				mw.notify( error, { type: 'error', tag: 'post-comment-error' } );
+			} )
+		},
+		linkComment() {
+			const url = new URL(window.location);
+			url.searchParams.set( 'commentid', this.$props.comment.id );
+			navigator.clipboard.writeText( url.href );
+			mw.notify( mw.msg( 'comments-action-link-copied' ), { tag: 'copy-comment' } );
+		}
+	},
 	setup() {
 		return {
 			cdxIconTrash,
 			cdxIconLink,
-			cdxIconEdit
+			cdxIconEdit,
+			cdxIconRestore
 		}
 	}
 } );

@@ -69,15 +69,12 @@ class CommentFileService {
 	 * Checks if the authority can upload a file. If they are not allowed, returns an instance of MessageValue which
 	 * should be used as the response to show the user.
 	 * @param Authority $authority
-	 * @return MessageValue|null
+	 * @return MessageValue|true
 	 */
 	public function isAllowedToUpload( $authority ) {
 		if ( !$authority->isAllowed( 'comments-upload' ) ) {
-			return new MessageValue( 'comments-upload-permissionerror' );
+			return new MessageValue( 'comments-upload-error-noperm' );
 		}
-		if ( !Utils::canUserComment( $authority ) ) {
-			return new MessageValue( 'comments-upload-blocked' );
-		}
-		return null;
+		return Utils::canUserComment( $authority );
 	}
 }

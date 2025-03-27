@@ -85,7 +85,16 @@
 		},
 		{
 			"path": "/comments/v0/comment/{commentid}",
-			"method": "PUT",
+			"method": "GET",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentById",
+			"services": [
+				"ActorStore",
+				"DBLoadBalancerFactory"
+			]
+		},
+		{
+			"path": "/comments/v0/comment/{commentid}/edit",
+			"method": [ "PUT", "DELETE" ],
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiEditComment",
 			"services": [
 				"Comments.CommentFactory"
@@ -145,7 +154,8 @@
 						"cdxIconTrash",
 						"cdxIconLink",
 						"cdxIconSpeechBubbleAdd",
-						"cdxIconEdit"
+						"cdxIconEdit",
+						"cdxIconRestore"
 					]
 				}
 			],
@@ -184,7 +194,11 @@
 				"comments-edited",
 				"comments-action-label-edit",
 				"comments-action-label-delete",
-				"comments-action-label-link"
+				"comments-action-label-undelete",
+				"comments-action-label-link",
+				"comments-action-link-copied",
+				"comments-single-mode-banner",
+				"comments-single-mode-viewall"
 			],
 			"targets": [
 				"desktop",

@@ -326,7 +326,7 @@ class Comment {
 			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
-		$this->rating = (int)$this->dbw->newSelectQueryBuilder()
+		$this->mRating = (int)$this->dbw->newSelectQueryBuilder()
 			->select( 'c_rating' )
 			->table( $this::TABLE_NAME )
 			->where( [ 'c_id' => $this->mId ] )
@@ -454,12 +454,13 @@ class Comment {
 		$row = [
 			'c_page' => $this->mPageId,
 			'c_actor' => $this->mActorId,
-			'c_parent' => $this->mParent->mId,
+			'c_parent' => $this->mParentId,
 			'c_timestamp' => wfTimestamp( TS_MW, $this->mCreatedTimestamp ),
 			'c_deleted' => (int)$this->mDeleted,
 			'c_rating' => $this->mRating,
 			'c_html' => $this->mHtml,
-			'c_wikitext' => $this->mWikitext
+			'c_wikitext' => $this->mWikitext,
+			'c_edited_timestamp' => $this->mEditedTimestamp
 		];
 
 		if ( !$this->mId ) {
@@ -473,9 +474,6 @@ class Comment {
 			// Set the ID of this object to the newly inserted object ID
 			$this->mId = $this->dbw->insertId();
 		} else {
-			$this->mEditedTimestamp = wfTimestamp( TS_ISO_8601 );
-			$row[ 'c_edited_timestamp' ] = $this->mEditedTimestamp;
-
 			// Perform an update instead
 			$this->dbw->newUpdateQueryBuilder()
 				->table( self::TABLE_NAME )
