@@ -126,7 +126,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				self::PARAM_SOURCE => 'query',
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => false,
-				ParamValidator::PARAM_DEFAULT => 50
+				ParamValidator::PARAM_DEFAULT => 10
 			],
 			'continue' => [
 				self::PARAM_SOURCE => 'query',
