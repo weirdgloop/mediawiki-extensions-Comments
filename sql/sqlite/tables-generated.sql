@@ -7,12 +7,14 @@ CREATE TABLE /*_*/com_comment (
   c_page INTEGER UNSIGNED NOT NULL, c_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
   c_timestamp BLOB NOT NULL, c_parent INTEGER UNSIGNED DEFAULT NULL,
   c_deleted SMALLINT UNSIGNED DEFAULT 0 NOT NULL,
-  c_rating INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+  c_rating INTEGER DEFAULT 0 NOT NULL,
   c_html BLOB NOT NULL, c_wikitext BLOB NOT NULL,
   c_edited_timestamp BLOB DEFAULT NULL
 );
 
 CREATE INDEX c_timestamp ON /*_*/com_comment (c_timestamp);
+
+CREATE INDEX c_parent ON /*_*/com_comment (c_parent);
 
 CREATE INDEX c_page_timestamp ON /*_*/com_comment (c_page, c_timestamp);
 

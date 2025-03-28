@@ -43,7 +43,7 @@
 				"name": "c_rating",
 				"comment": "The comment's current rating. Not intended to be an accurate copy of SUM(*)",
 				"type": "integer",
-				"options": { "unsigned": true, "notnull": true, "default": 0 }
+				"options": { "unsigned": false, "notnull": true, "default": 0 }
 			},
 			{
 				"name": "c_html",
@@ -68,6 +68,11 @@
 			{
 				"name": "c_timestamp",
 				"columns": [ "c_timestamp" ],
+				"unique": false
+			},
+			{
+				"name": "c_parent",
+				"columns": [ "c_parent" ],
 				"unique": false
 			},
 			{

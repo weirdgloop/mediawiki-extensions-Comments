@@ -18,6 +18,8 @@ CREATE TABLE com_comment (
 
 CREATE INDEX c_timestamp ON com_comment (c_timestamp);
 
+CREATE INDEX c_parent ON com_comment (c_parent);
+
 CREATE INDEX c_page_timestamp ON com_comment (c_page, c_timestamp);
 
 CREATE INDEX c_actor_timestamp ON com_comment (c_actor, c_timestamp);
