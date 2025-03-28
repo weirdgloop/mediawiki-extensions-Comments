@@ -198,7 +198,8 @@
 				"comments-action-label-link",
 				"comments-action-link-copied",
 				"comments-single-mode-banner",
-				"comments-single-mode-viewall"
+				"comments-single-mode-viewall",
+				"comments-anon"
 			],
 			"targets": [
 				"desktop",

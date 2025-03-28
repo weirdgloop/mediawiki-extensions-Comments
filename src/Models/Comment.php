@@ -494,7 +494,10 @@ class Comment {
 			'id' => $this->mId,
 			'created' => $this->mCreatedTimestamp,
 			'edited' => $this->mEditedTimestamp,
-			'user' => $this->getActor()->getName(),
+			'user' => [
+				'name' => $this->getActor()->getName(),
+				'anon' => !$this->getActor()->isRegistered()
+			],
 			'deleted' => $this->mDeleted,
 			'rating' => $this->mRating,
 			'html' => $this->mHtml,

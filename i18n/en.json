@@ -47,5 +47,6 @@
 	"comments-action-label-link": "Copy link",
 	"comments-action-link-copied": "Copied link to the clipboard",
 	"comments-single-mode-banner": "Displaying a single comment thread",
-	"comments-single-mode-viewall": "View all comments"
+	"comments-single-mode-viewall": "View all comments",
+	"comments-anon": "Anonymous"
 }

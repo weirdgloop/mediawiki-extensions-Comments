@@ -4,7 +4,9 @@
 		<div class="comment-body">
 			<div class="comment-header">
 				<div class="comment-author-wrapper">
-					<a class="comment-author" :href="userPageLink">{{ comment.user }}</a>
+					<a class="comment-author" :href="userPageLink">
+						{{ this.comment.user.anon ? $i18n( 'comments-anon' ) : comment.user.name }}
+					</a>
 					<div class="comment-info">
 						<span
 							class="comment-rating"
@@ -107,7 +109,7 @@ module.exports = exports = defineComponent( {
 			return moment( this.comment.edited ).fromNow();
 		},
 		userPageLink() {
-			const title = new mw.Title( this.comment.user, 2 ); // 2 = User
+			const title = new mw.Title( this.comment.user.name, 2 ); // 2 = User
 			return title.getUrl();
 		}
 	},
