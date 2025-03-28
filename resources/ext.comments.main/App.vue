@@ -1,7 +1,18 @@
 <template>
 	<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
 	<toolbar></toolbar>
-	<new-comment-input v-if="store.singleComment === null"></new-comment-input>
+	<button
+		class="comment-input-placeholder"
+		v-show="!isWritingTopLevelComment"
+		@click="isWritingTopLevelComment = true"
+	>
+		<span>{{ $i18n( 'comments-post-placeholder-top-level' ).text() }}</span>
+	</button>
+	<new-comment-input
+		v-if="store.singleComment === null"
+		:is-writing-comment="isWritingTopLevelComment"
+		:on-cancel="() => isWritingTopLevelComment = false"
+	></new-comment-input>
 	<div
 		v-if="store.singleComment !== null"
 		class="comment-info-full"
@@ -26,7 +37,8 @@ module.exports = exports = defineComponent( {
 	name: 'App',
 	data() {
 		return {
-			store
+			store,
+			isWritingTopLevelComment: false
 		};
 	},
 	components: {

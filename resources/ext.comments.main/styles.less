@@ -7,35 +7,62 @@
 #ext-comments-container {
 	margin-top: 2em;
 
+	button {
+		cursor: pointer;
+	}
+
+	p {
+		margin: 0;
+	}
+
+	.comment-input-placeholder {
+		width: 100%;
+		height: 40px;
+		background: white;
+		border: 1px solid var(--comments-border-color);
+		text-align: left;
+		padding: 0 1em;
+		color: #757575;
+		font-weight: 200;
+		margin-bottom: 1em;
+	}
+
+	.comment-reply-button {
+		background: #f9f8f8;
+		font-size: 0.75em;
+		display: flex;
+		gap: 0.25em;
+		border: 1px solid var(--comments-border-color);
+		padding: 0.3em 1em;
+		border-top: 0;
+		font-weight: 200;
+
+		.cdx-icon {
+			color: #717171;
+		}
+	}
+
 	.comment-input-container {
 		margin-bottom: 0.5em;
-
-		.comment-input-placeholder {
-			width: 100%;
-			height: 40px;
-			background: white;
-			border: 1px solid var(--comments-border-color);
-			text-align: left;
-			padding: 0 1em;
-			color: #757575;
-			cursor: pointer;
-			font-weight: 200;
-		}
 	}
 
 	.ext-comments-comments-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5em;
+		gap: 1em;
 	}
 
 	.ext-comments-comment-item {
 		display: flex;
-		padding: 0.5em 0.25em;
-		border: 1px solid var(--comments-border-color);
-		border-radius: 3px;
-		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
-		gap: 0.5em;
+		flex-direction: column;
+
+		> div:first-child {
+			display: flex;
+			padding: 0.5em 0.25em;
+			border: 1px solid var(--comments-border-color);
+			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
+			gap: 0.5em;
+		}
 
 		&[data-deleted="true"] {
 			background: #ffe8e8;
@@ -89,7 +116,6 @@
 			background: none;
 			border: none;
 			padding: 0.25em;
-			cursor: pointer;
 
 			.cdx-icon {
 				color: #555;
@@ -125,7 +151,6 @@
 		button {
 			background: none;
 			border: none;
-			cursor: pointer;
 
 			.cdx-icon {
 				color: #a4a4a4;

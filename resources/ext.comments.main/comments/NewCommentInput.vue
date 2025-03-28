@@ -1,30 +1,20 @@
 <template>
-	<div class="comment-input-container">
-		<button
-			v-show="!isWritingComment"
-			class="comment-input-placeholder"
-			@click="isWritingComment = true"
-		>
-			<span v-if="isTopLevel">{{ $i18n( 'comments-post-placeholder-top-level' ).text() }}</span>
-			<span v-else>{{ $i18n( 'comments-post-placeholder-child' ).text() }}</span>
-		</button>
-		<div v-show="isWritingComment">
-			<div class="ve-area-wrapper">
-				<textarea
-					ref="input"
-					rows="5"
-				></textarea>
-			</div>
-			<div class="comment-input-actions">
-				<cdx-button :disabled="store.globalCooldown" action="progressive" weight="primary" @click="submitComment">
-					<span v-if="store.globalCooldown">{{ $i18n( 'comments-submit-cooldown', store.globalCooldown ).text() }}</span>
-					<span v-else-if="isTopLevel">{{ $i18n( 'comments-post-submit-top-level' ).text() }}</span>
-					<span v-else>{{ $i18n( 'comments-post-submit-child' ).text() }}</span>
-				</cdx-button>
-				<cdx-button action="destructive" @click="isWritingComment = false">
-					{{ $i18n( 'cancel' ).text() }}
-				</cdx-button>
-			</div>
+	<div v-show="isWritingComment" class="comment-input-container">
+		<div class="ve-area-wrapper">
+			<textarea
+				ref="input"
+				rows="5"
+			></textarea>
+		</div>
+		<div class="comment-input-actions">
+			<cdx-button :disabled="store.globalCooldown" action="progressive" weight="primary" @click="submitComment">
+				<span v-if="store.globalCooldown">{{ $i18n( 'comments-submit-cooldown', store.globalCooldown ).text() }}</span>
+				<span v-else-if="isTopLevel">{{ $i18n( 'comments-post-submit-top-level' ).text() }}</span>
+				<span v-else>{{ $i18n( 'comments-post-submit-child' ).text() }}</span>
+			</cdx-button>
+			<cdx-button action="destructive" @click="onCancel">
+				{{ $i18n( 'cancel' ).text() }}
+			</cdx-button>
 		</div>
 	</div>
 </template>
@@ -48,10 +38,14 @@ module.exports = exports = defineComponent( {
 		CdxButton
 	},
 	props: {
-		value: {
-			type: String,
-			default: '',
-			required: false
+		isWritingComment: {
+			type: Boolean,
+			default: false,
+			required: true
+		},
+		onCancel: {
+			type: Function,
+			required: true
 		},
 		parentId: {
 			type: Number,
@@ -81,7 +75,7 @@ module.exports = exports = defineComponent( {
 					this.$data.store.comments.unshift( newComment );
 				}
 
-				this.$data.isWritingComment = false;
+				this.$props.onCancel();
 			} ).fail( ( _, result ) => {
 				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
 					result.xhr.responseJSON, 'messageTranslations' ) ) {
@@ -105,18 +99,13 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
-			ve: null,
-			isWritingComment: false
+			ve: null
 		};
 	},
 	watch: {
 		isWritingComment( val ) {
 			if ( val === true && this.$data.ve === null ) {
 				const $input = $( this.$refs.input );
-
-				if ( this.$props.value !== '' ) {
-					$input.val( this.$props.value );
-				}
 
 				// Create the VE instance for this editor
 				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );

@@ -1,13 +1,14 @@
 <template>
 	<div class="ext-comments-comment-item" :data-comment-id="comment.id" :data-deleted="comment.deleted">
-		<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
-		<div class="comment-body">
-			<div class="comment-header">
-				<div class="comment-author-wrapper">
-					<a class="comment-author" :href="userPageLink">
-						{{ this.comment.user.anon ? $i18n( 'comments-anon' ) : comment.user.name }}
-					</a>
-					<div class="comment-info">
+		<div>
+			<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
+			<div class="comment-body">
+				<div class="comment-header">
+					<div class="comment-author-wrapper">
+						<a class="comment-author" :href="userPageLink">
+							{{ this.comment.user.anon ? $i18n( 'comments-anon' ) : comment.user.name }}
+						</a>
+						<div class="comment-info">
 						<span
 							class="comment-rating"
 							:class="{
@@ -15,50 +16,64 @@
 								'rating-negative': comment.rating < 0
 							}"
 						>{{ rating }}</span>
-						&#183;
-						<span class="comment-date" :title="this.comment.created">{{ date }}</span>
-						<span class="comment-edited" v-if="comment.edited !== null">  {{ $i18n( 'comments-edited', editedDate ).text() }}</span>
+							&#183;
+							<span class="comment-date" :title="this.comment.created">{{ date }}</span>
+							<span class="comment-edited" v-if="comment.edited !== null">  {{ $i18n( 'comments-edited', editedDate ).text() }}</span>
+						</div>
 					</div>
-				</div>
-				<div class="comment-actions">
-					<comment-action
-						v-if="!store.readOnly && !comment.deleted && comment.ours"
-						class="comment-action-edit"
-						:disabled="store.isEditing === comment.id"
-						:icon="cdxIconEdit"
-						:on-click="() => store.isEditing = comment.id"
-						:title="$i18n( 'comments-action-label-edit' ).text()"
-					></comment-action>
-					<comment-action
-						v-if="!store.readOnly && ( comment.ours || store.isMod )"
-						class="comment-action-delete"
-						:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
-						:on-click="deleteComment"
-						:title="$i18n(
+					<div class="comment-actions">
+						<comment-action
+							v-if="!store.readOnly && !comment.deleted && comment.ours"
+							class="comment-action-edit"
+							:disabled="store.isEditing === comment.id"
+							:icon="cdxIconEdit"
+							:on-click="() => store.isEditing = comment.id"
+							:title="$i18n( 'comments-action-label-edit' ).text()"
+						></comment-action>
+						<comment-action
+							v-if="!store.readOnly && ( comment.ours || store.isMod )"
+							class="comment-action-delete"
+							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
+							:on-click="deleteComment"
+							:title="$i18n(
 							comment.deleted ? 'comments-action-label-undelete' : 'comments-action-label-delete'
 						).text()"
-					></comment-action>
-					<comment-action
-						v-if="!comment.deleted"
-						class="comment-action-link"
-						:on-click="linkComment"
-						:icon="cdxIconLink"
-						:title="$i18n( 'comments-action-label-link' ).text()"
-					></comment-action>
+						></comment-action>
+						<comment-action
+							v-if="!comment.deleted"
+							class="comment-action-link"
+							:on-click="linkComment"
+							:icon="cdxIconLink"
+							:title="$i18n( 'comments-action-label-link' ).text()"
+						></comment-action>
+					</div>
 				</div>
-			</div>
-			<edit-comment-input :comment="comment" :value="comment.html" v-if="store.isEditing === comment.id"></edit-comment-input>
-			<div v-else class="comment-content" v-html="comment.html"></div>
-			<div v-if="comment.children.length > 0" class="comment-children">
-				<comment-item
-					v-for="c in comment.children"
-					:key="c.id"
-					:comment="c"
+				<edit-comment-input :comment="comment" :value="comment.html" v-if="store.isEditing === comment.id"></edit-comment-input>
+				<div v-else class="comment-content" v-html="comment.html"></div>
+				<div v-if="comment.children.length > 0" class="comment-children">
+					<comment-item
+						v-for="c in comment.children"
+						:key="c.id"
+						:comment="c"
+						:parent-id="comment.id"
+					></comment-item>
+				</div>
+				<new-comment-input
+					v-if="!parentId && !comment.deleted"
 					:parent-id="comment.id"
-				></comment-item>
+					:is-writing-comment="isWritingReply"
+					:on-cancel="() => isWritingReply = false"
+				></new-comment-input>
 			</div>
-			<new-comment-input v-if="!parentId && !comment.deleted" :parent-id="comment.id"></new-comment-input>
 		</div>
+		<button
+			v-if="!parentId && !isWritingReply"
+			class="comment-reply-button"
+			@click="isWritingReply = true"
+		>
+			<cdx-icon :icon="cdxIconAdd" size="small"></cdx-icon>
+			{{ $i18n( 'comments-post-placeholder-child' ) }}
+		</button>
 	</div>
 </template>
 
@@ -70,7 +85,10 @@ const CommentAction = require( './CommentAction.vue' );
 const CommentRating = require( './CommentRating.vue' )
 const NewCommentInput = require( '../comments/NewCommentInput.vue' );
 const EditCommentInput = require( '../comments/EditCommentInput.vue' );
-const { cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore } = require( '../icons.json' );
+const { CdxIcon } = require( '@wikimedia/codex' );
+const {
+	cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore, cdxIconAdd
+} = require( '../icons.json' );
 
 const api = new mw.Rest();
 
@@ -80,7 +98,8 @@ module.exports = exports = defineComponent( {
 		NewCommentInput,
 		EditCommentInput,
 		CommentAction,
-		CommentRating
+		CommentRating,
+		CdxIcon
 	},
 	props: {
 		comment: Comment,
@@ -93,6 +112,7 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
+			isWritingReply: false
 		};
 	},
 	computed: {
@@ -150,7 +170,8 @@ module.exports = exports = defineComponent( {
 			cdxIconTrash,
 			cdxIconLink,
 			cdxIconEdit,
-			cdxIconRestore
+			cdxIconRestore,
+			cdxIconAdd
 		}
 	}
 } );

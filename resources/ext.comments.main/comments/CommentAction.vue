@@ -14,7 +14,6 @@
 <script>
 const { defineComponent } = require( 'vue' );
 const { CdxIcon } = require( '@wikimedia/codex' );
-const Comment = require( '../comment.js' );
 
 module.exports = exports = defineComponent( {
 	name: 'DeleteAction',
