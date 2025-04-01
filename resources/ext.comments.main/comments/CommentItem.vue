@@ -59,7 +59,7 @@
 					></comment-item>
 				</div>
 				<new-comment-input
-					v-if="!parentId && !comment.deleted"
+					v-if="!parentId"
 					:parent-id="comment.id"
 					:is-writing-comment="isWritingReply"
 					:on-cancel="() => isWritingReply = false"
@@ -67,7 +67,7 @@
 			</div>
 		</div>
 		<button
-			v-if="!parentId && !isWritingReply"
+			v-if="!parentId && !isWritingReply && !comment.deleted"
 			class="comment-reply-button"
 			@click="isWritingReply = true"
 		>
