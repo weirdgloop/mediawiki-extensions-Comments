@@ -319,10 +319,10 @@ class Comment {
 	 * This method should ONLY be called on comments that already exist in the database.
 	 * @return void
 	 */
-	public function incrementRatingCount() {
+	public function incrementRatingCount( $amount = 1 ) {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
-			->set( [ 'c_rating=c_rating+' . 1 ] )
+			->set( [ 'c_rating=c_rating+' . $amount ] )
 			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
@@ -340,14 +340,14 @@ class Comment {
 	 * This method should ONLY be called on comments that already exist in the database.
 	 * @return void
 	 */
-	public function decrementRatingCount() {
+	public function decrementRatingCount( $amount = 1 ) {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
-			->set( [ 'c_rating=c_rating-' . 1 ] )
+			->set( [ 'c_rating=c_rating-' . $amount ] )
 			->where( [ 'c_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
-		$this->rating = (int)$this->dbw->newSelectQueryBuilder()
+		$this->mRating = (int)$this->dbw->newSelectQueryBuilder()
 			->select( 'c_rating' )
 			->table( $this::TABLE_NAME )
 			->where( [ 'c_id' => $this->mId ] )

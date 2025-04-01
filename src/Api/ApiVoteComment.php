@@ -51,10 +51,10 @@ class ApiVoteComment extends SimpleHandler {
 //			throw new HttpException( "Cannot vote on user's own comment", 400 );
 //		}
 
-		$comment->setRatingForUser( $user, $rating );
+		$rating = $comment->setRatingForUser( $user, $rating );
 
 		return $this->getResponseFactory()->createJson( [
-			'comment' => $comment->toArray()
+			'comment' => $rating->getComment()->toArray()
 		] );
 	}
 
