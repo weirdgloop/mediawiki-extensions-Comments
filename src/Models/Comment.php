@@ -397,7 +397,6 @@ class Comment {
 			}
 
 			$this->mWikitext = $content->getText();
-			return $this->mWikitext;
 		} else {
 			if ( !$this->mWikitext ) {
 				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
@@ -405,10 +404,9 @@ class Comment {
 
 			$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
 			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
-			$parserOutput = $parser->parse( $this->mWikitext, $this->mTitle, $parserOpts );
+			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
 
 			$this->mHtml = $parserOutput->getText();
-			return $this->mHtml;
 		}
 	}
 

@@ -7,19 +7,26 @@
 		></comment-item>
 		<button
 			v-if="moreContinue"
+			:disabled="loading"
 			class="comment-info-full"
 			@click="loadComments"
 		>
 			{{ $i18n( 'comments-continue' ).text() }}
 		</button>
 		<div
-			v-if="error"
+			v-if="loading"
+			class="comment-info-full"
+		>
+			{{ $i18n( 'comments-loading' ).text() }}
+		</div>
+		<div
+			v-else-if="error"
 			class="mw-message-box mw-message-box-error"
 		>
 			{{ $i18n( 'comments-load-error', error ).text() }}
 		</div>
 		<div
-			v-else-if="$data.initialLoad && !store.comments.length"
+			v-else-if="$data.initialLoadCompleted && !store.comments.length"
 			class="comment-info-full"
 		>
 			{{ $i18n( 'comments-empty' ).text() }}
@@ -49,8 +56,12 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
-			// For tracking whether the user has already made a first API call, when this element is in view
-			initialLoad: false,
+			// For tracking whether this component has ever been scrolled into view
+			elementSeen: false,
+			// Whether the first API call to get comments has been completed
+			initialLoadCompleted: false,
+			// Whether we are currently making a request and therefore should be in a loading state
+			loading: false,
 			moreContinue: null,
 			error: null
 		};
@@ -88,6 +99,8 @@ module.exports = exports = defineComponent( {
 					qsp.set( 'continue', this.$data.moreContinue );
 				}
 
+				this.$data.loading = true;
+
 				api.get( `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }` )
 					.done( ( res ) => {
 						const comments = [];
@@ -105,11 +118,17 @@ module.exports = exports = defineComponent( {
 							this.$data.error = true;
 						}
 					} )
+					.always( () => {
+						if ( this.$data.initialLoadCompleted !== true ) {
+							this.$data.initialLoadCompleted = true;
+						}
+						this.$data.loading = false;
+					} )
 			}
 		},
 		checkVisible() {
-			if ( isElementInView( this.$el ) && this.$data.store.ready && !this.$data.initialLoad ) {
-				this.$data.initialLoad = true;
+			if ( isElementInView( this.$el ) && this.$data.store.ready && !this.$data.elementSeen ) {
+				this.$data.elementSeen = true;
 				this.loadComments();
 			}
 		}

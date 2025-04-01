@@ -199,11 +199,19 @@
 				"comments-action-link-copied",
 				"comments-single-mode-banner",
 				"comments-single-mode-viewall",
-				"comments-anon"
-			],
-			"targets": [
-				"desktop",
-				"mobile"
+				"comments-anon",
+				"comments-loading"
+			]
+		},
+		"ext.comments.ve.desktop": {
+			"dependencies": [
+				"ext.visualEditor.core.desktop",
+				"ext.visualEditor.desktopTarget"
+			]
+		},
+		"ext.comments.ve.mobile": {
+			"dependencies": [
+				"ext.visualEditor.core.mobile"
 			]
 		},
 		"ext.comments.ve": {
@@ -218,8 +226,6 @@
 				"MWWikitextWarningCommand.js"
 			],
 			"dependencies": [
-				"ext.visualEditor.core.desktop",
-				"ext.visualEditor.desktopTarget",
 				"ext.visualEditor.core",
 				"ext.visualEditor.data",
 				"ext.visualEditor.icons",
@@ -232,9 +238,6 @@
 			],
 			"messages": [
 				"comments-visualeditor-wikitext-warning"
-			],
-			"targets": [
-				"desktop"
 			]
 		}
 	},

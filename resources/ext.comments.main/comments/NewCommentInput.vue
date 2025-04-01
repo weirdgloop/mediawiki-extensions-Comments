@@ -55,15 +55,21 @@ module.exports = exports = defineComponent( {
 	},
 	methods: {
 		submitComment() {
-			const html = this.$data.ve.target.getSurface().getHtml()
-
-			// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
-			// which will sanitize it before saving it in the database.
-			api.post( '/comments/v0/comment', {
+			const body = {
 				pageid: config.wgArticleId,
-				parentid: this.$props.parentId,
-				html: html
-			} ).then( ( data ) => {
+				parentid: this.$props.parentId
+			};
+
+			if ( this.$data.ve ) {
+				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
+				// which will sanitize it before saving it in the database.
+				body[ 'html' ] = this.$data.ve.target.getSurface().getHtml();
+			} else {
+				// If we're not using VE, just send the raw value of the input as wikitext.
+				body[ 'wikitext' ] = $( this.$refs.input ).val();
+			}
+
+			api.post( '/comments/v0/comment', body ).then( ( data ) => {
 				let newComment = new Comment( data.comment );
 
 				if ( this.$props.parentId ) {
@@ -104,17 +110,24 @@ module.exports = exports = defineComponent( {
 	},
 	watch: {
 		isWritingComment( val ) {
-			if ( val === true && this.$data.ve === null ) {
-				const $input = $( this.$refs.input );
-
+			const $input = $( this.$refs.input );
+			if ( val === true && this.$data.ve === null && mw.commentsExt.ve.Editor.static.isSupported() ) {
 				// Create the VE instance for this editor
 				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 			} else if ( val === true ) {
-				this.$data.ve.target.getSurface().getView().focus();
+				if ( this.$data.ve ) {
+					this.$data.ve.target.getSurface().getView().focus();
+				} else {
+					setTimeout(() => $input.focus(), 0);
+				}
 			} else {
-				// When we're no longer writing a comment, kill the VE instance
-				this.$data.ve.target.destroy();
-				this.$data.ve = null;
+				if ( this.$data.ve ) {
+					// When we're no longer writing a comment, kill the VE instance
+					this.$data.ve.target.destroy();
+					this.$data.ve = null;
+				} else {
+					$input.val('');
+				}
 			}
 		}
 	},

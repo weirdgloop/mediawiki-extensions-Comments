@@ -171,7 +171,6 @@
 		return !!(
 			!isMobileTarget &&
 			mw.loader.getState( 'ext.visualEditor.core' ) &&
-			mw.config.get( 'wgFlowEditorList' ).indexOf( 'visualeditor' ) !== -1 &&
 			window.VisualEditorSupportCheck && VisualEditorSupportCheck
 		);
 	};

@@ -33,7 +33,7 @@
 		display: flex;
 		gap: 0.25em;
 		border: 1px solid var(--comments-border-color);
-		padding: 0.3em 1em;
+		padding: 0.3em 0.75em;
 		border-top: 0;
 		font-weight: 200;
 
@@ -101,6 +101,13 @@
 			flex-grow: 1;
 		}
 
+		.comment-content {
+			img {
+				max-width: 50% !important;
+				height: auto;
+			}
+		}
+
 		.comment-children {
 			display: flex;
 			flex-direction: column;
@@ -115,7 +122,7 @@
 		.comment-action-btn {
 			background: none;
 			border: none;
-			padding: 0.25em;
+			padding: 0.1em;
 
 			.cdx-icon {
 				color: #555;
@@ -201,6 +208,12 @@
 	}
 
 	.comment-input-container {
+		textarea {
+			width: 100%;
+			resize: none;
+			border: 1px solid var(--comments-border-color);
+		}
+
 		.ve-area-wrapper {
 			.ve-init-target {
 				border: 1px solid var(--comments-border-color);

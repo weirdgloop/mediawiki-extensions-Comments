@@ -41,16 +41,18 @@ class ApiPostComment extends SimpleHandler {
 		$body = $this->getValidatedBody();
 		$pageid = (int)$body[ 'pageid' ];
 
+		$html = trim( (string)$body[ 'html' ] );
+		$wikitext = trim( (string)$body[ 'wikitext' ] );
+
+		if ( !$html && !$wikitext ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-empty' ), 400 );
+		}
+
 		$page = $this->titleFactory->newFromID( $pageid );
 		if ( !$page || !$page->exists() ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'comments-submit-error-page-missing', $pageid ), 400 );
-		}
-
-		$html = trim( (string)$body[ 'html' ] );
-		if ( !$html ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-empty' ), 400 );
 		}
 
 		$parentId = (int)$body[ 'parentid' ];
@@ -73,8 +75,13 @@ class ApiPostComment extends SimpleHandler {
 		$comment = $this->commentFactory->newEmpty()
 			->setTitle( $page )
 			->setActor( $this->getAuthority()->getUser() )
-			->setParent( $parent )
-			->setHtml( $html );
+			->setParent( $parent );
+
+		if ( $html ) {
+			$comment->setHtml( $html );
+		} else {
+			$comment->setWikitext( $wikitext );
+		}
 
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {
@@ -115,8 +122,13 @@ class ApiPostComment extends SimpleHandler {
 			'html' => [
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_REQUIRED => true
+				ParamValidator::PARAM_REQUIRED => false
 			],
+			'wikitext' => [
+				self::PARAM_SOURCE => 'body',
+				ParamValidator::PARAM_TYPE => 'string',
+				ParamValidator::PARAM_REQUIRED => false
+			]
 		] );
 	}
 }

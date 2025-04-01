@@ -13,6 +13,7 @@
 	"comments-rating": "$1 {{PLURAL:$2|vote|votes}}",
 	"comments-empty": "No comments",
 	"comments-continue": "Load more comments",
+	"comments-loading": "Fetching comments, please wait...",
 	"comments-sort-label": "Sort by",
 	"comments-sort-newest": "Newest",
 	"comments-sort-oldest": "Oldest",

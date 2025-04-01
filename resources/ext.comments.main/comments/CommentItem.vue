@@ -48,7 +48,7 @@
 						></comment-action>
 					</div>
 				</div>
-				<edit-comment-input :comment="comment" :value="comment.html" v-if="store.isEditing === comment.id"></edit-comment-input>
+				<edit-comment-input :comment="comment" v-if="store.isEditing === comment.id"></edit-comment-input>
 				<div v-else class="comment-content" v-html="comment.html"></div>
 				<div v-if="comment.children.length > 0" class="comment-children">
 					<comment-item

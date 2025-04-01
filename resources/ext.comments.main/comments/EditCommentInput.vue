@@ -42,22 +42,22 @@ module.exports = exports = defineComponent( {
 			type: Comment,
 			default: null,
 			required: true
-		},
-		value: {
-			type: String,
-			default: '',
-			required: false
 		}
 	},
 	methods: {
 		submitComment() {
-			const html = this.$data.ve.target.getSurface().getHtml()
+			const body = {};
 
-			// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
-			// which will sanitize it before saving it in the database.
-			api.put( `/comments/v0/comment/${this.$props.comment.id}/edit`, {
-				html: html
-			} ).then( ( data ) => {
+			if ( this.$data.ve ) {
+				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
+				// which will sanitize it before saving it in the database.
+				body[ 'html' ] = this.$data.ve.target.getSurface().getHtml();
+			} else {
+				// If we're not using VE, just send the raw value of the input as wikitext.
+				body[ 'wikitext' ] = $( this.$refs.input ).val();
+			}
+
+			api.put( `/comments/v0/comment/${this.$props.comment.id}/edit`, body ).then( ( data ) => {
 				const newComment = new Comment( data.comment );
 				this.$props.comment.html = newComment.html;
 				this.$props.comment.wikitext = newComment.wikitext;
@@ -92,12 +92,12 @@ module.exports = exports = defineComponent( {
 	mounted() {
 		const $input = $( this.$refs.input );
 
-		if ( this.$props.value !== '' ) {
-			$input.val( this.$props.value );
+		if ( mw.commentsExt.ve.Editor.static.isSupported() ) {
+			// Create the VE instance for this editor
+			this.$data.ve = new mw.commentsExt.ve.Editor( $input, this.$props.comment.html );
+		} else {
+			$input.val( this.$props.comment.wikitext );
 		}
-
-		// Create the VE instance for this editor
-		this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 	}
 } );
 </script>

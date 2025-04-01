@@ -45,6 +45,14 @@ class ApiEditComment extends SimpleHandler {
 		$params = $this->getValidatedParams();
 		$commentId = (int)$params[ 'commentid' ];
 
+		$html = trim( (string)$body[ 'html' ] );
+		$wikitext = trim( (string)$body[ 'wikitext' ] );
+
+		if ( !$html && !$wikitext ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-empty' ), 400 );
+		}
+
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
@@ -64,8 +72,11 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		$html = $body[ 'html' ];
-		$comment->setHtml( $html );
+		if ( $html ) {
+			$comment->setHtml( $html );
+		} else {
+			$comment->setWikitext( $wikitext );
+		}
 
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {
@@ -127,13 +138,17 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		$body = [];
 		if ( $this->getRequest()->getMethod() === 'PUT' ) {
 			$body = [
 				'html' => [
 					self::PARAM_SOURCE => 'body',
 					ParamValidator::PARAM_TYPE => 'string',
-					ParamValidator::PARAM_REQUIRED => true
+					ParamValidator::PARAM_REQUIRED => false
+				],
+				'wikitext' => [
+					self::PARAM_SOURCE => 'body',
+					ParamValidator::PARAM_TYPE => 'string',
+					ParamValidator::PARAM_REQUIRED => false
 				]
 			];
 		} else {
