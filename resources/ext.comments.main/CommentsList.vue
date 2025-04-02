@@ -6,7 +6,7 @@
 			:comment="c"
 		></comment-item>
 		<button
-			v-if="moreContinue"
+			v-if="moreContinue && !loading"
 			:disabled="loading"
 			class="comment-info-full"
 			@click="loadComments"
