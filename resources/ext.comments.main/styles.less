@@ -28,17 +28,19 @@
 	}
 
 	.comment-reply-button {
-		background: #f9f8f8;
-		font-size: 0.75em;
-		display: flex;
-		gap: 0.25em;
-		border: 1px solid var(--comments-border-color);
-		padding: 0.3em 0.75em;
-		border-top: 0;
+		margin-top: 0.2em;
+		background: none;
+		border: 0;
 		font-weight: 200;
+		font-size: 0.8em;
+		width: fit-content;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.3em;
 
 		.cdx-icon {
-			color: #717171;
+			color: #b0b0b0;
 		}
 	}
 
@@ -55,12 +57,12 @@
 	.ext-comments-comment-item {
 		display: flex;
 		flex-direction: column;
+		padding: 0.5em 0.25em;
+		border: 1px solid var(--comments-border-color);
+		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
 
 		> div:first-child {
 			display: flex;
-			padding: 0.5em 0.25em;
-			border: 1px solid var(--comments-border-color);
-			box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
 			gap: 0.5em;
 		}
 

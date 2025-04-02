@@ -71,8 +71,8 @@
 			class="comment-reply-button"
 			@click="isWritingReply = true"
 		>
-			<cdx-icon :icon="cdxIconAdd" size="small"></cdx-icon>
-			{{ $i18n( 'comments-post-placeholder-child' ) }}
+			<cdx-icon :icon="cdxIconShare" dir="rtl" size="small"></cdx-icon>
+			<span>{{ $i18n( 'comments-post-placeholder-child' ) }}</span>
 		</button>
 	</div>
 </template>
@@ -87,7 +87,7 @@ const NewCommentInput = require( '../comments/NewCommentInput.vue' );
 const EditCommentInput = require( '../comments/EditCommentInput.vue' );
 const { CdxIcon } = require( '@wikimedia/codex' );
 const {
-	cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore, cdxIconAdd
+	cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore, cdxIconShare
 } = require( '../icons.json' );
 
 const api = new mw.Rest();
@@ -171,7 +171,7 @@ module.exports = exports = defineComponent( {
 			cdxIconLink,
 			cdxIconEdit,
 			cdxIconRestore,
-			cdxIconAdd
+			cdxIconShare
 		}
 	}
 } );
