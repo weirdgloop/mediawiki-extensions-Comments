@@ -2,6 +2,9 @@
 
 namespace MediaWiki\Extension\Comments;
 
+use ExtensionRegistry;
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Output\OutputPage;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\User\User;
 use Wikimedia\Message\MessageValue;
@@ -32,5 +35,22 @@ class Utils {
 	 */
 	public static function canUserModerate( $userOrAuthority ) {
 		return $userOrAuthority->isAllowed( 'comments-manage' );
+	}
+
+	/**
+	 * @param OutputPage $out
+	 * @return void
+	 */
+	public static function loadCommentsModule( OutputPage $out ) {
+		// On desktop, load VE dependencies. On mobile, we will just use a normal <input> for writing a comment.
+		$services = MediaWikiServices::getInstance();
+		if ( !(
+			ExtensionRegistry::getInstance()->isLoaded( 'MobileFrontend' ) &&
+			$services->getService( 'MobileFrontend.Context' )->shouldDisplayMobileView()
+		) ) {
+			$out->addModules( [ 'ext.comments.ve.desktop' ] );
+		}
+
+		$out->addModules( [ 'ext.comments.main' ] );
 	}
 }

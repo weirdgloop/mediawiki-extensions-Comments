@@ -1,6 +1,8 @@
 <template>
 	<div class="comment-list-toolbar">
-		<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
+		<h3 :style="{ 'visibility': store.isSpecialComments ? 'hidden' : null }">
+			{{ $i18n( 'comments-container-header' ).text()  }}
+		</h3>
 		<div class="comment-list-options">
 			<div class="comment-list-option-sort-method">
 				<cdx-field>

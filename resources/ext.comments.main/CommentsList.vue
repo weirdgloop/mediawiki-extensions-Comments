@@ -101,7 +101,14 @@ module.exports = exports = defineComponent( {
 
 				this.$data.loading = true;
 
-				api.get( `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }` )
+				let path;
+				if ( this.$data.store.isSpecialComments ) {
+					path = `/comments/v0/all?${ qsp.toString() }`
+				} else {
+					path = `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }`;
+				}
+
+				api.get( path )
 					.done( ( res ) => {
 						const comments = [];
 						for ( const data of res.comments ) {

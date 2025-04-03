@@ -2,6 +2,7 @@
 	<toolbar></toolbar>
 	<button
 		class="comment-input-placeholder"
+		v-if="!store.isSpecialComments"
 		v-show="!isWritingTopLevelComment"
 		@click="isWritingTopLevelComment = true"
 	>

@@ -65,9 +65,19 @@
 	},
 	"RestRoutes": [
 		{
+			"path": "/comments/v0/all",
+			"method": "GET",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetAllComments",
+			"services": [
+				"TitleFactory",
+				"ActorStore",
+				"DBLoadBalancerFactory"
+			]
+		},
+		{
 			"path": "/comments/v0/page/{pageid}",
 			"method": "GET",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentsForPage",
+			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetAllComments",
 			"services": [
 				"TitleFactory",
 				"ActorStore",
@@ -200,7 +210,8 @@
 				"comments-single-mode-banner",
 				"comments-single-mode-viewall",
 				"comments-anon",
-				"comments-loading"
+				"comments-loading",
+				"comments-page-link"
 			]
 		},
 		"ext.comments.ve.desktop": {

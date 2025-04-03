@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\Comments\Api;
 
 use MediaWiki\Extension\Comments\CommentsPager;
 use MediaWiki\Extension\Comments\Models\Comment;
+use MediaWiki\Extension\Comments\Models\CommentRating;
 use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\SimpleHandler;
@@ -13,7 +14,7 @@ use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\LBFactory;
 
-class ApiGetCommentsForPage extends SimpleHandler {
+class ApiGetAllComments extends SimpleHandler {
 	/**
 	 * @var TitleFactory
 	 */
@@ -40,15 +41,31 @@ class ApiGetCommentsForPage extends SimpleHandler {
 	}
 
 	/**
+	 * @param object{ c: Comment, ur: CommentRating, ours: bool } $r
+	 * @return array
+	 */
+	private function getCommentDataFromResult( $r ) {
+		return $r['c']->toArray() + [
+			'children' => [],
+			'userRating' => $r[ 'ur' ],
+			'ours' => $r[ 'ours' ],
+			'page' => $r[ 'p' ]
+		];
+	}
+
+	/**
 	 * @throws HttpException
 	 */
 	public function run() {
 		$params = $this->getValidatedParams();
 		$pageid = $params[ 'pageid' ];
 
-		$title = $this->titleFactory->newFromID( $pageid );
-		if ( !$title || !$title->exists() ) {
-			throw new HttpException( "Page with ID $pageid does not exist", 400 );
+		$title = null;
+		if ( $pageid !== null ) {
+			$title = $this->titleFactory->newFromID( $pageid );
+			if ( !$title || !$title->exists() ) {
+				throw new HttpException( "Page with ID $pageid does not exist", 400 );
+			}
 		}
 
 		$showDeleted = Utils::canUserModerate( $this->getAuthority() );
@@ -84,11 +101,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 				// If this is a child comment, add it to the child comments array for processing later
 				$childComments[] = $r;
 			} else {
-				$comments[] = $r['c']->toArray() + [
-					'children' => [],
-					'userRating' => $r['ur'],
-					'ours' => $r['ours']
-				];
+				$comments[] = $this->getCommentDataFromResult( $r );
 			}
 		}
 
@@ -96,10 +109,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 		foreach ( $childComments as $child ) {
 			foreach ( $comments as $index => $topLevelComment ) {
 				if ( $topLevelComment[ 'id' ] === $child['c']->mParentId ) {
-					$comments[ $index ][ 'children' ][] = $child['c']->toArray() + [
-						'userRating' => $child['ur'],
-						'ours' => $child['ours']
-					];
+					$comments[ $index ][ 'children' ][] = $this->getCommentDataFromResult( $child );
 				}
 			}
 		}
@@ -120,7 +130,7 @@ class ApiGetCommentsForPage extends SimpleHandler {
 			'pageid' => [
 				self::PARAM_SOURCE => 'path',
 				ParamValidator::PARAM_TYPE => 'integer',
-				ParamValidator::PARAM_REQUIRED => true
+				ParamValidator::PARAM_REQUIRED => false
 			],
 			'limit' => [
 				self::PARAM_SOURCE => 'query',

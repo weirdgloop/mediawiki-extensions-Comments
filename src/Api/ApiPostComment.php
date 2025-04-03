@@ -39,7 +39,13 @@ class ApiPostComment extends SimpleHandler {
 		}
 
 		$body = $this->getValidatedBody();
-		$pageid = (int)$body[ 'pageid' ];
+		$pageId = (int)$body[ 'pageid' ];
+		$parentId = (int)$body[ 'parentid' ];
+
+		// Must either provide a page ID or a parent ID
+		if ( !$pageId && !$parentId ) {
+			throw new HttpException( 'Must provide either page ID or parent ID' );
+		}
 
 		$html = trim( (string)$body[ 'html' ] );
 		$wikitext = trim( (string)$body[ 'wikitext' ] );
@@ -48,14 +54,6 @@ class ApiPostComment extends SimpleHandler {
 			throw new LocalizedHttpException(
 				new MessageValue( 'comments-submit-error-empty' ), 400 );
 		}
-
-		$page = $this->titleFactory->newFromID( $pageid );
-		if ( !$page || !$page->exists() ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-page-missing', $pageid ), 400 );
-		}
-
-		$parentId = (int)$body[ 'parentid' ];
 
 		$parent = null;
 		if ( $parentId ) {
@@ -69,6 +67,14 @@ class ApiPostComment extends SimpleHandler {
 				throw new LocalizedHttpException(
 					new MessageValue( 'comments-submit-error-parent-hasparent' ), 400 );
 			}
+
+			$pageId = $parent->getTitle()->getId();
+		}
+
+		$page = $this->titleFactory->newFromID( $pageId );
+		if ( !$page || !$page->exists() ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-submit-error-page-missing', $pageId ), 400 );
 		}
 
 		// Create a new comment
@@ -112,7 +118,7 @@ class ApiPostComment extends SimpleHandler {
 			'pageid' => [
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'integer',
-				ParamValidator::PARAM_REQUIRED => true
+				ParamValidator::PARAM_REQUIRED => false
 			],
 			'parentid' => [
 				self::PARAM_SOURCE => 'body',

@@ -204,6 +204,16 @@ class CommentsPager {
 	}
 
 	/**
+	 * If we're not getting results for a specific page, look up the page names for each comment in the page table.
+	 * @param SelectQueryBuilder $builder
+	 */
+	private function addPageJoinIfRequired( $builder ) {
+		if ( empty( $this->targetPageId ) ) {
+			$builder->join( 'page', null, 'page_id = c_page' );
+		}
+	}
+
+	/**
 	 * Execute the database query.
 	 * After calling this method, the result will be available by calling `$this->getResult()`.
 	 * @return void
@@ -253,6 +263,8 @@ class CommentsPager {
 				->from( Comment::TABLE_NAME )
 				->where( $childConds );
 
+			$this->addPageJoinIfRequired( $childSelect );
+
 			if ( $this->currentActor !== null ) {
 				$childSelect->leftJoin( 'com_rating', null, [
 					'cr_comment = c_id',
@@ -289,6 +301,8 @@ class CommentsPager {
 					'a'
 				);
 
+			$this->addPageJoinIfRequired( $parentSelect );
+
 			if ( $this->currentActor !== null ) {
 				$parentSelect->leftJoin( 'com_rating', null, [
 					'cr_comment = c_id',
@@ -313,12 +327,15 @@ class CommentsPager {
 			}
 		}
 
-		return $this->reallyDoQuery( $this->db->newSelectQueryBuilder()
+		$builder = $this->db->newSelectQueryBuilder()
 			->from( Comment::TABLE_NAME )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit ] )
-			->caller( __METHOD__ )
-		);
+			->caller( __METHOD__ );
+
+		$this->addPageJoinIfRequired( $builder );
+
+		return $this->reallyDoQuery( $builder );
 	}
 
 	/**
@@ -355,7 +372,12 @@ class CommentsPager {
 				// The current user's rating, if we retrieved it
 				'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
 				// Whether this comment belongs to the current actor
-				'ours' => $this->currentActor === $c->mActorId
+				'ours' => $this->currentActor === $c->mActorId,
+				// The page for the comment, only returned if there was no target page given to the pager instance
+				'p' => $row->page_title ? [
+					'title' => $row->page_title,
+					'ns' => (int)$row->page_namespace
+				] : null
 			];
 		}
 

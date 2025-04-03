@@ -2,11 +2,10 @@
 
 namespace MediaWiki\Extension\Comments\Hooks;
 
-use ExtensionRegistry;
 use MediaWiki\Block\Hook\GetAllBlockActionsHook;
 use MediaWiki\Config\Config;
+use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Hook\BeforePageDisplayHook;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
 use Skin;
@@ -47,16 +46,7 @@ class GeneralHookHandlers implements
 			return;
 		}
 
-		// On desktop, load VE dependencies. On mobile, we will just use a normal <input> for writing a comment.
-		$services = MediaWikiServices::getInstance();
-		if ( !(
-			ExtensionRegistry::getInstance()->isLoaded( 'MobileFrontend' ) &&
-			$services->getService( 'MobileFrontend.Context' )->shouldDisplayMobileView()
-		) ) {
-			$out->addModules( [ 'ext.comments.ve.desktop' ] );
-		}
-
-		$out->addModules( [ 'ext.comments.main' ] );
+		Utils::loadCommentsModule( $out );
 	}
 
 	/**

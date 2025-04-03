@@ -15,6 +15,7 @@ class Comment {
 		this.created = data.created;
 		this.edited = data.edited || null;
 		this.ours = data.ours || false;
+		this.page = data.page || null;
 
 		/** @type Comment[] */
 		this.children = [];

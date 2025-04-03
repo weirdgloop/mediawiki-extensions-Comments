@@ -49,5 +49,7 @@
 	"comments-action-link-copied": "Copied link to the clipboard",
 	"comments-single-mode-banner": "Displaying a single comment thread",
 	"comments-single-mode-viewall": "View all comments",
-	"comments-anon": "Anonymous"
+	"comments-anon": "Anonymous",
+	"comments-no-script": "You must have JavaScript enabled in your browser to view and interact with comments.",
+	"comments-page-link": "Posted on $1"
 }

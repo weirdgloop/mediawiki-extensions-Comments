@@ -1,9 +1,13 @@
 const { reactive } = require( 'vue' );
 
+const isSpecialComments = !!document.querySelector( 'body.mw-special-Comments' );
+
 const store = reactive( {
+	// Whether we're on Special:Comments instead of a normal wiki page
+	isSpecialComments,
 	ready: false,
 	comments: [],
-	sortMethod: 'sort_rating_desc',
+	sortMethod: isSpecialComments ? 'sort_date_desc' : 'sort_rating_desc',
 	isReadOnly: false,
 	globalCooldown: 0,
 	// The ID of the comment that we're currently editing, or null if we aren't editing any

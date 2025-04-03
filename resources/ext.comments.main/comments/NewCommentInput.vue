@@ -55,10 +55,14 @@ module.exports = exports = defineComponent( {
 	},
 	methods: {
 		submitComment() {
-			const body = {
-				pageid: config.wgArticleId,
-				parentid: this.$props.parentId
-			};
+			const body = {};
+
+			// If we're replying to another comment, we don't need to provide a page ID
+			if ( this.$props.parentId ) {
+				body[ 'parentid' ] = this.$props.parentId;
+			} else {
+				body[ 'pageid' ] = config.wgArticleId;
+			}
 
 			if ( this.$data.ve ) {
 				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid

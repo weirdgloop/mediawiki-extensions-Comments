@@ -6,19 +6,25 @@
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
 						<a class="comment-author" :href="userPageLink">
-							{{ this.comment.user.anon ? $i18n( 'comments-anon' ) : comment.user.name }}
+							{{ comment.user.anon ? $i18n( 'comments-anon' ) : comment.user.name }}
 						</a>
 						<div class="comment-info">
-						<span
-							class="comment-rating"
-							:class="{
-								'rating-positive': comment.rating > 0,
-								'rating-negative': comment.rating < 0
-							}"
-						>{{ rating }}</span>
+							<span
+								class="comment-rating"
+								:class="{
+									'rating-positive': comment.rating > 0,
+									'rating-negative': comment.rating < 0
+								}"
+							>{{ rating }}</span>
 							&#183;
-							<span class="comment-date" :title="this.comment.created">{{ date }}</span>
+							<span class="comment-date" :title="comment.created">{{ date }}</span>
 							<span class="comment-edited" v-if="comment.edited !== null">  {{ $i18n( 'comments-edited', editedDate ).text() }}</span>
+							<span
+								class="comment-page"
+								v-if="targetPage"
+							>
+								&#183; <span v-html="targetPageText"></span>
+							</span>
 						</div>
 					</div>
 					<div class="comment-actions">
@@ -131,6 +137,20 @@ module.exports = exports = defineComponent( {
 		userPageLink() {
 			const title = new mw.Title( this.comment.user.name, 2 ); // 2 = User
 			return title.getUrl();
+		},
+		/**
+		 * @returns {mw.Title|null}
+		 */
+		targetPage() {
+			if ( this.comment.page ) {
+				return new mw.Title( this.comment.page.title, this.comment.page.ns );
+			}
+
+			return null;
+		},
+		targetPageText() {
+			return mw.message( 'comments-page-link',
+				`<a href="${this.targetPage.getUrl()}">${this.targetPage.getPrefixedText()}</a>` )
 		}
 	},
 	methods: {
