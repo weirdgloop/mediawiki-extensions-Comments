@@ -188,11 +188,15 @@
 		border: 1px solid var(--comments-border-color);
 	}
 
-	.comment-list-options {
+	.comment-list-toolbar {
 		display: flex;
-		justify-content: right;
+		justify-content: space-between;
+		gap: 1em;
 		margin: 1em 0;
+		align-items: flex-end;
+	}
 
+	.comment-list-options {
 		.comment-list-option-sort-method {
 			> .cdx-field {
 				display: flex;

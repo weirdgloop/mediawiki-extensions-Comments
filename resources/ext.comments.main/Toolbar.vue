@@ -1,15 +1,18 @@
 <template>
-	<div class="comment-list-options">
-		<div class="comment-list-option-sort-method">
-			<cdx-field>
-				<cdx-select
-					v-model:selected="store.sortMethod"
-					:menu-items="sortOptions"
-				></cdx-select>
-				<template #label>
-					{{ $i18n( 'comments-sort-label' ).text() }}
-				</template>
-			</cdx-field>
+	<div class="comment-list-toolbar">
+		<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
+		<div class="comment-list-options">
+			<div class="comment-list-option-sort-method">
+				<cdx-field>
+					<cdx-select
+						v-model:selected="store.sortMethod"
+						:menu-items="sortOptions"
+					></cdx-select>
+					<template #label>
+						{{ $i18n( 'comments-sort-label' ).text() }}
+					</template>
+				</cdx-field>
+			</div>
 		</div>
 	</div>
 </template>

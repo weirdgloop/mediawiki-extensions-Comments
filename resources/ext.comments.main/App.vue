@@ -1,5 +1,4 @@
 <template>
-	<h3>{{ $i18n( 'comments-container-header' ).text() }}</h3>
 	<toolbar></toolbar>
 	<button
 		class="comment-input-placeholder"
