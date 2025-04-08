@@ -52,7 +52,7 @@ module.exports = exports = defineComponent( {
 		disableSingleComment() {
 			this.$data.store.singleComment = null;
 			const url = new URL( window.location )
-			url.searchParams.delete( 'commentid' );
+			url.hash = '';
 			history.pushState(null, '', url);
 		}
 	},
@@ -62,8 +62,7 @@ module.exports = exports = defineComponent( {
 		let readOnly = mw.config.get( 'wgComments' ).readOnly;
 
 		// Get current URL, and determine whether we should only be showing a single comment
-		let currentUrl = new URL( window.location );
-		let singleCommentId = currentUrl.searchParams.get( 'commentid' );
+		let singleCommentId = new URLSearchParams( window.location.hash.substring(1) ).get( 'commentid' );
 		if ( singleCommentId ) {
 			this.$data.store.singleComment = singleCommentId;
 		}

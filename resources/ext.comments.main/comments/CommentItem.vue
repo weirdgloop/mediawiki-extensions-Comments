@@ -180,7 +180,7 @@ module.exports = exports = defineComponent( {
 		},
 		linkComment() {
 			const url = new URL(window.location);
-			url.searchParams.set( 'commentid', this.$props.comment.id );
+			url.hash = 'commentid=' + this.$props.comment.id;
 			navigator.clipboard.writeText( url.href );
 			mw.notify( mw.msg( 'comments-action-link-copied' ), { tag: 'copy-comment' } );
 		}
