@@ -1,5 +1,5 @@
 <template>
-	<div class="ext-comments-comment-item" :data-comment-id="comment.id" :data-deleted="comment.deleted">
+	<div class="ext-comments-comment-item" :class="{ 'is-highlighted': parseInt( store.singleComment ) === comment.id }" :data-comment-id="comment.id" :data-deleted="comment.deleted">
 		<div>
 			<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
 			<div class="comment-body">
@@ -24,6 +24,12 @@
 								v-if="targetPage"
 							>
 								&#183; <span v-html="targetPageText"></span>
+							</span>
+							<span
+								class="comment-parent"
+								v-if="!store.singleComment && store.isSpecialComments && comment.parent"
+							>
+								<span v-html="targetParentText"></span>
 							</span>
 						</div>
 					</div>
@@ -142,7 +148,7 @@ module.exports = exports = defineComponent( {
 		 * @returns {mw.Title|null}
 		 */
 		targetPage() {
-			if ( this.comment.page ) {
+			if ( this.comment.page && this.store.isSpecialComments ) {
 				return new mw.Title( this.comment.page.title, this.comment.page.ns );
 			}
 
@@ -151,6 +157,14 @@ module.exports = exports = defineComponent( {
 		targetPageText() {
 			return mw.message( 'comments-page-link',
 				`<a href="${this.targetPage.getUrl()}">${this.targetPage.getPrefixedText()}</a>` )
+		},
+		targetParentText() {
+			const url = new URL( document.location );
+			url.hash = `commentid=${this.comment.parent}`;
+
+			return mw.message( 'comments-parent-link',
+				`<a href="${url}">${ mw.message( 'comments-parent-link-inner' ) }</a>`
+			);
 		}
 	},
 	methods: {

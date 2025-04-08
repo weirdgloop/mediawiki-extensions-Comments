@@ -98,6 +98,7 @@
 			"method": "GET",
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentById",
 			"services": [
+				"Comments.CommentFactory",
 				"ActorStore",
 				"DBLoadBalancerFactory"
 			]
@@ -211,7 +212,9 @@
 				"comments-single-mode-viewall",
 				"comments-anon",
 				"comments-loading",
-				"comments-page-link"
+				"comments-page-link",
+				"comments-parent-link",
+				"comments-parent-link-inner"
 			]
 		},
 		"ext.comments.ve.desktop": {

@@ -6,7 +6,6 @@ use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\Extension\Comments\Models\CommentRating;
 use MediaWiki\MediaWikiServices;
 use stdClass;
-use Title;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\UnionQueryBuilder;
@@ -31,16 +30,6 @@ class CommentsPager {
 	private IDatabase $db;
 
 	/**
-	 * @var int|null
-	 */
-	private int $targetPageId;
-
-	/**
-	 * @var bool Set to true to include child comments. Only has effect if $this->parent is null.
-	 */
-	private bool $includeChildren = true;
-
-	/**
 	 * @var int|null If set, will retrieve the user's rating for each comment.
 	 */
 	private $currentActor = null;
@@ -49,11 +38,6 @@ class CommentsPager {
 	 * @var bool Set to true to include deleted comments
 	 */
 	private bool $includeDeleted;
-
-	/**
-	 * @var int|null
-	 */
-	private $targetCommentId = null;
 
 	/**
 	 * The continue offset to use in the database query.
@@ -69,45 +53,24 @@ class CommentsPager {
 	private int $limit = 50;
 
 	/**
-	 * @var string
+	 * @var string|null
 	 */
-	private string $sortMethod;
-
-	/**
-	 * Object containing three keys for each comment:
-	 * - `c`: the Comment object
-	 * - `ur`: the CommentRating for the provided user ($this->currentActor), if provided
-	 * - `ours`: whether the comment belongs to $this->currentActor, if provided
-	 * @var stdClass[]
-	 */
-	private array $res = [];
+	private ?string $sortMethod = null;
 
 	/**
 	 * @param array $options
 	 * @param int|null $currentActor
-	 * @param Title|int|null $targetTitle
-	 * @param Comment|int|null $targetComment
-	 * @param string $sortMethod
+	 * @param string|null $sortMethod
 	 */
 	public function __construct(
 		array $options,
 		int $currentActor = null,
-		$targetTitle = null,
-		$targetComment = null,
-		string $sortMethod = self::SORT_DATE_DESC
+		?string $sortMethod = self::SORT_DATE_DESC
 	) {
 		$services = MediaWikiServices::getInstance();
 
 		if ( $currentActor ) {
 			$this->currentActor = $currentActor;
-		}
-
-		if ( $targetTitle !== null ) {
-			$this->targetPageId = ( $targetTitle instanceof Title ) ? $targetTitle->getId() : $targetTitle;
-		}
-
-		if ( $targetComment !== null ) {
-			$this->targetCommentId = ( $targetComment instanceof Comment ) ? $targetComment->getId() : $targetComment;
 		}
 
 		$this->commentFactory = $services->getService( 'Comments.CommentFactory' );
@@ -145,33 +108,6 @@ class CommentsPager {
 	}
 
 	/**
-	 * @return string
-	 */
-	public function getSortMethod() {
-		return $this->sortMethod;
-	}
-
-	/**
-	 * Set the sort method for the query
-	 * @param string $sortMethod one of the `SORT_*` constants
-	 * @return void
-	 */
-	public function setSortMethod( $sortMethod ) {
-		$this->sortMethod = $sortMethod;
-	}
-
-	/**
-	 * @return object[]
-	 */
-	public function getResult() {
-		if ( !$this->res ) {
-			$this->execute();
-		}
-
-		return $this->res;
-	}
-
-	/**
 	 * @return string[]|null
 	 */
 	private function getOrderCondition() {
@@ -204,40 +140,44 @@ class CommentsPager {
 	}
 
 	/**
-	 * If we're not getting results for a specific page, look up the page names for each comment in the page table.
 	 * @param SelectQueryBuilder $builder
 	 */
-	private function addPageJoinIfRequired( $builder ) {
-		if ( empty( $this->targetPageId ) ) {
-			$builder->join( 'page', null, 'page_id = c_page' );
+	private function addPageJoin( $builder ) {
+		$builder->join( 'page', null, 'page_id = c_page' );
+	}
+
+	/**
+	 * @param SelectQueryBuilder $builder
+	 */
+	private function addUserRatingJoin( $builder ) {
+		if ( $this->currentActor !== null ) {
+			$builder->leftJoin( 'com_rating', null, [
+				'cr_comment = c_id',
+				'cr_actor' => $this->currentActor
+			] );
 		}
 	}
 
 	/**
-	 * Execute the database query.
-	 * After calling this method, the result will be available by calling `$this->getResult()`.
-	 * @return void
+	 * Fetches the comments for a particular page by its ID.
+	 * @param int $pageId
+	 * @param bool $includeChildren
+	 * @return stdClass[]
 	 */
-	public function execute() {
-		$conds = [];
-
-		if ( !empty( $this->targetPageId ) ) {
-			$conds[ 'c_page' ] = $this->targetPageId;
-		}
+	public function fetchResultsForPage( $pageId, $includeChildren ) {
+		$conds = [
+			'c_page' => $pageId,
+		];
 
 		if ( !$this->includeDeleted ) {
 			$conds[ 'c_deleted' ] = false;
-		}
-
-		if ( $this->targetCommentId ) {
-			$conds[ 'c_id' ] = $this->targetCommentId;
 		}
 
 		$opts = [
 			'ORDER BY' => $this->getOrderCondition()
 		];
 
-		if ( $this->includeChildren ) {
+		if ( $includeChildren ) {
 			$uqb = $this->db->newUnionQueryBuilder()->all();
 
 			$childConds = [];
@@ -246,32 +186,20 @@ class CommentsPager {
 				$childConds[ 'c_deleted' ] = false;
 			}
 
-			if ( $this->targetCommentId !== null ) {
-				$childConds[ 'c_parent' ] = $this->targetCommentId;
-			} else {
-				$childConds[] = 'c_parent IN ' . $this->db->buildSelectSubquery(
-					Comment::TABLE_NAME,
-					'c_id',
-					$conds,
-					__METHOD__,
-					$opts + [ 'LIMIT' => $this->limit ]
-				);
-			}
+			$childConds[] = 'c_parent IN ' . $this->db->buildSelectSubquery(
+				Comment::TABLE_NAME,
+				'c_id',
+				$conds,
+				__METHOD__,
+				$opts + [ 'LIMIT' => $this->limit ]
+			);
 
 			$childSelect = $this->db->newSelectQueryBuilder()
 				->select( '*' )
 				->from( Comment::TABLE_NAME )
 				->where( $childConds );
 
-			$this->addPageJoinIfRequired( $childSelect );
-
-			if ( $this->currentActor !== null ) {
-				$childSelect->leftJoin( 'com_rating', null, [
-					'cr_comment = c_id',
-					'cr_actor' => $this->currentActor
-				] );
-			}
-
+			$this->addUserRatingJoin( $childSelect );
 			$uqb->add( $childSelect );
 
 			if ( $this->continue !== null ) {
@@ -301,18 +229,10 @@ class CommentsPager {
 					'a'
 				);
 
-			$this->addPageJoinIfRequired( $parentSelect );
-
-			if ( $this->currentActor !== null ) {
-				$parentSelect->leftJoin( 'com_rating', null, [
-					'cr_comment = c_id',
-					'cr_actor' => $this->currentActor
-				] );
-			}
+			$this->addUserRatingJoin( $parentSelect );
 
 			$uqb->add( $parentSelect );
-
-			return $this->reallyDoQuery( $uqb->caller( __METHOD__ ) );
+			return $this->reallyFetchResultsForPage( $uqb->caller( __METHOD__ ) );
 		}
 
 		if ( $this->continue !== null ) {
@@ -328,21 +248,21 @@ class CommentsPager {
 		}
 
 		$builder = $this->db->newSelectQueryBuilder()
+			->select( '*' )
 			->from( Comment::TABLE_NAME )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit ] )
 			->caller( __METHOD__ );
 
-		$this->addPageJoinIfRequired( $builder );
-
-		return $this->reallyDoQuery( $builder );
+		$this->addUserRatingJoin( $builder );
+		return $this->reallyFetchResultsForPage( $builder );
 	}
 
 	/**
 	 * @param SelectQueryBuilder|UnionQueryBuilder $builder
-	 * @return void
+	 * @return stdClass[]
 	 */
-	private function reallyDoQuery( $builder ) {
+	private function reallyFetchResultsForPage( $builder ) {
 		$res = $builder->fetchResultSet();
 		$prevContinue = $this->continue;
 		$this->continue = null;
@@ -366,21 +286,136 @@ class CommentsPager {
 				}
 			}
 
-			$comments[] = [
-				// The comment object, returned as-is
-				'c' => $c,
-				// The current user's rating, if we retrieved it
-				'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
-				// Whether this comment belongs to the current actor
-				'ours' => $this->currentActor === $c->mActorId,
-				// The page for the comment, only returned if there was no target page given to the pager instance
-				'p' => property_exists( $row, 'page_title' ) ? [
-					'title' => $row->page_title,
-					'ns' => (int)$row->page_namespace
-				] : null
-			];
+			$comments[] = $this->formatResult( $c, $row );
 		}
 
-		$this->res = $comments;
+		return $comments;
+	}
+
+	/**
+	 * Fetches all of the comments posted on the wiki.
+	 * @return stdClass[]
+	 */
+	public function fetchAllResults() {
+		$conds = [];
+
+		if ( !$this->includeDeleted ) {
+			$conds[ 'c_deleted' ] = false;
+		}
+
+		$opts = [
+			'ORDER BY' => $this->getOrderCondition()
+		];
+
+		if ( $this->continue !== null ) {
+			$offsetCond = $this->getOffsetCondition();
+			if ( $offsetCond !== null ) {
+				$conds[] = $offsetCond;
+			}
+			if ( !str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+				// For queries without dates, we will revert to using actual query offset,
+				// which is probably slightly expensive for a large number of comments.
+				$opts[ 'OFFSET' ] = $this->continue;
+			}
+		}
+
+		$builder = $this->db->newSelectQueryBuilder()
+			->select( '*' )
+			->from( Comment::TABLE_NAME )
+			->where( $conds )
+			->options( $opts + [ 'LIMIT' => $this->limit ] )
+			->caller( __METHOD__ );
+
+		$this->addPageJoin( $builder );
+		$this->addUserRatingJoin( $builder );
+
+		$res = $builder->fetchResultSet();
+		$prevContinue = $this->continue;
+		$this->continue = null;
+
+		$comments = [];
+
+		foreach ( $res as $row ) {
+			if ( count( $comments ) === $this->limit ) {
+				// This is the extra row we queried for to work out if there's more rows that can be requested.
+				if ( str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+					$this->continue = $row->c_timestamp;
+				} else {
+					$this->continue = $prevContinue + $this->limit;
+				}
+				continue;
+			}
+			$c = $this->commentFactory->newFromRow( $row );
+			$comments[] = $this->formatResult( $c, $row );
+		}
+
+		return $comments;
+	}
+
+	/**
+	 * Fetches the target parent ID's row, and the children of the target parent comment ID.
+	 * @param int $parentId
+	 * @return stdClass[]
+	 */
+	public function fetchResultsForParent( $parentId ) {
+		$conds = [];
+
+		if ( !$this->includeDeleted ) {
+			$conds[ 'c_deleted' ] = false;
+		}
+
+		$uqb = $this->db->newUnionQueryBuilder()->all();
+		$childConds = [
+			'c_parent' => $parentId
+		];
+
+		$childSelect = $this->db->newSelectQueryBuilder()
+			->select( '*' )
+			->from( Comment::TABLE_NAME )
+			->where( $conds + $childConds );
+
+		$this->addPageJoin( $childSelect );
+		$this->addUserRatingJoin( $childSelect );
+		$uqb->add( $childSelect );
+
+		$parentSelect = $this->db->newSelectQueryBuilder()
+			->select( '*' )
+			->from( Comment::TABLE_NAME )
+			->where( [ 'c_id' => $parentId ] + $conds );
+
+		$this->addPageJoin( $parentSelect );
+		$this->addUserRatingJoin( $parentSelect );
+		$uqb->add( $parentSelect );
+		$uqb->orderBy( [ 'ORDER BY' => $this->getOrderCondition() ] );
+
+		$res = $uqb->fetchResultSet();
+		$comments = [];
+		foreach ( $res as $row ) {
+			$c = $this->commentFactory->newFromRow( $row );
+			$comments[] = $this->formatResult( $c, $row );
+		}
+		return $comments;
+	}
+
+	/**
+	 * @param Comment $comment
+	 * @param stdClass $row
+	 * @return stdClass[]
+	 */
+	private function formatResult( $comment, $row ) {
+		return [
+			// The comment object, returned as-is
+			'c' => $comment,
+			// The current user's rating, if we retrieved it
+			'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
+			// Whether this comment belongs to the current actor
+			'ours' => $this->currentActor === $comment->mActorId,
+			// The page for the comment, only returned if there was no target page given to the pager instance
+			'p' => property_exists( $row, 'page_title' ) ? [
+				'title' => $row->page_title,
+				'ns' => (int)$row->page_namespace,
+				'id' => (int)$row->page_id
+			] : null
+		];
 	}
 }

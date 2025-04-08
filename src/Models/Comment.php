@@ -478,6 +478,7 @@ class Comment {
 				'name' => $this->getActor()->getName(),
 				'anon' => !$this->getActor()->isRegistered()
 			],
+			'parent' => $this->mParentId,
 			'deleted' => $this->mDeleted,
 			'rating' => $this->mRating,
 			'html' => $this->mHtml,

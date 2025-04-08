@@ -51,5 +51,7 @@
 	"comments-single-mode-viewall": "View all comments",
 	"comments-anon": "Anonymous",
 	"comments-no-script": "You must have JavaScript enabled in your browser to view and interact with comments.",
-	"comments-page-link": "Posted on $1"
+	"comments-page-link": "Posted on $1",
+	"comments-parent-link": "in reply to a $1",
+	"comments-parent-link-inner": "comment"
 }

@@ -2,7 +2,11 @@
 
 namespace MediaWiki\Extension\Comments\Api;
 
+use InvalidArgumentException;
+use MediaWiki\Extension\Comments\CommentFactory;
 use MediaWiki\Extension\Comments\CommentsPager;
+use MediaWiki\Extension\Comments\Models\Comment;
+use MediaWiki\Extension\Comments\Models\CommentRating;
 use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
@@ -15,6 +19,11 @@ use Wikimedia\Rdbms\LBFactory;
 
 class ApiGetCommentById extends SimpleHandler {
 	/**
+	 * @var CommentFactory
+	 */
+	private CommentFactory $commentFactory;
+
+	/**
 	 * @var ActorStore
 	 */
 	private ActorStore $actorStore;
@@ -25,11 +34,26 @@ class ApiGetCommentById extends SimpleHandler {
 	private $dbr;
 
 	public function __construct(
+		CommentFactory $commentFactory,
 		ActorStore $actorStore,
 		LBFactory $factory
 	) {
+		$this->commentFactory = $commentFactory;
 		$this->actorStore = $actorStore;
 		$this->dbr = $factory->getReplicaDatabase();
+	}
+
+	/**
+	 * @param object{ c: Comment, ur: CommentRating, ours: bool } $r
+	 * @return array
+	 */
+	private function getCommentDataFromResult( $r ) {
+		return $r['c']->toArray() + [
+			'children' => [],
+			'userRating' => $r[ 'ur' ],
+			'ours' => $r[ 'ours' ],
+			'page' => $r[ 'p' ]
+		];
 	}
 
 	/**
@@ -43,51 +67,53 @@ class ApiGetCommentById extends SimpleHandler {
 		// Do not use ActorStore::acquireActorId, otherwise a new actor ID will be made for every anonymous page view
 		$actor = $this->actorStore->findActorId( $this->getAuthority()->getUser(), $this->dbr );
 
-		// Create a pager to get the children of this comment
-		$pager = new CommentsPager(
-			[
-				'includeDeleted' => $showDeleted
-			],
-			$actor,
-			null,
-			$commentId,
-			$params[ 'sort' ]
-		);
-
-		$res = $pager->getResult();
-		if ( empty( $res ) ) {
+		try {
+			$comment = $this->commentFactory->newFromId( $commentId );
+		} catch ( InvalidArgumentException $ex ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 
-		$targetComment = [];
-		$children = [];
-		foreach ( $res as $r ) {
-			if ( $r['c']->mParentId !== null ) {
-				$children[] = $r['c']->toArray() + [
-					'userRating' => $r['ur'],
-					'ours' => $r['ours']
-				];
-			} else {
-				$targetComment = $r['c']->toArray() + [
-					'children' => [],
-					'userRating' => $r['ur'],
-					'ours' => $r['ours']
-				];
+		if ( !Utils::canUserModerate( $this->getAuthority() )
+			&& $comment->isDeleted() && $comment->getActor() !== $actor ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+			);
+		}
 
-				if ( $r['c']->isDeleted() && $showDeleted === false ) {
-					throw new LocalizedHttpException(
-						new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
-					);
-				}
+		$parentId = $comment->mParentId;
+		$targetId = $parentId === null ? $comment->getId() : $parentId;
+
+		$pager = new CommentsPager(
+			[
+				'includeDeleted' => $showDeleted
+			],
+			$actor,
+			$params[ 'sort' ],
+		);
+
+		$pager->setLimit( 1 );
+		$res = $pager->fetchResultsForParent( $targetId );
+
+		/** @var Comment[] $comments */
+		$childComments = [];
+
+		$parent = null;
+		foreach ( $res as $r ) {
+			$data = $this->getCommentDataFromResult( $r );
+			if ( $r['c']->mParentId !== null ) {
+				// If this is a child comment, add it to the child comments array for processing later
+				$childComments[] = $data;
+			} else {
+				$parent = $data;
 			}
 		}
 
-		$targetComment[ 'children' ] = $children;
-
 		return $this->getResponseFactory()->createJson( [
-			'comment' => $targetComment,
+			'comment' => array_merge( $parent, [
+				'children' => $childComments
+			] ),
 			// Piggyback off this API call to return some extra info about the logged in user which the UI will use
 			'isMod' => Utils::canUserModerate( $this->getAuthority() )
 		] );

@@ -13,15 +13,6 @@
 		:is-writing-comment="isWritingTopLevelComment"
 		:on-cancel="() => isWritingTopLevelComment = false"
 	></new-comment-input>
-	<div
-		v-if="store.singleComment !== null"
-		class="comment-info-full"
-		style="margin-bottom: 1em;"
-	>
-		<span>{{ $i18n( 'comments-single-mode-banner' ) }}</span>
-		&#183;
-		<a @click="disableSingleComment">{{ $i18n( 'comments-single-mode-viewall' ) }}</a>
-	</div>
 	<comments-list></comments-list>
 </template>
 
@@ -47,14 +38,6 @@ module.exports = exports = defineComponent( {
 		CommentsList,
 		CdxSelect,
 		CdxField
-	},
-	methods: {
-		disableSingleComment() {
-			this.$data.store.singleComment = null;
-			const url = new URL( window.location )
-			url.hash = '';
-			history.pushState(null, '', url);
-		}
 	},
 	mounted() {
 		const self = this;

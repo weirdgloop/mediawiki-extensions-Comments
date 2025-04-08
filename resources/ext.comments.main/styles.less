@@ -66,6 +66,11 @@
 			gap: 0.5em;
 		}
 
+		&.is-highlighted {
+			background: #fffce8;
+			border-color: #eee6c5;
+		}
+
 		&[data-deleted="true"] {
 			background: #ffe8e8;
 			border-color: #eec5c5;
@@ -116,7 +121,7 @@
 			gap: 0.5em;
 			margin-bottom: 0.5em;
 
-			> .ext-comments-comment-item:not([data-deleted]) {
+			> .ext-comments-comment-item:not([data-deleted]):not(.is-highlighted) {
 				background: #f7f7f7;
 			}
 		}

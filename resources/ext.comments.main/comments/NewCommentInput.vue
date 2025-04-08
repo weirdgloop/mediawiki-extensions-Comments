@@ -73,8 +73,6 @@ module.exports = exports = defineComponent( {
 				body[ 'wikitext' ] = $( this.$refs.input ).val();
 			}
 
-			console.log('html is', body[ 'html' ]);
-
 			// Use .ajax here rather than .post to circumvent bug: https://bugs.jquery.com/ticket/12326/
 			api.ajax( '/comments/v0/comment', {
 				type: 'POST',
@@ -87,7 +85,7 @@ module.exports = exports = defineComponent( {
 
 				if ( this.$props.parentId ) {
 					// Reply to an existing comment, add it to the end of the children list
-					const ix = this.$data.store.comments.findIndex( ( c ) => c.id = this.$props.parentId );
+					const ix = this.$data.store.comments.findIndex( ( c ) => c.id === this.$props.parentId );
 					this.$data.store.comments[ix].children.push( newComment );
 				} else {
 					// Top-level comment, just throw it to the top of the comments list

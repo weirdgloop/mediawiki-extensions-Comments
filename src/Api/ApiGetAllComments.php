@@ -78,8 +78,6 @@ class ApiGetAllComments extends SimpleHandler {
 				'includeDeleted' => $showDeleted
 			],
 			$actor,
-			$title,
-			null,
 			$params[ 'sort' ]
 		);
 
@@ -98,26 +96,35 @@ class ApiGetAllComments extends SimpleHandler {
 
 		$pager->setLimit( $limit );
 		$pager->setContinue( $continue );
-		$res = $pager->getResult();
 
-		$continue = $pager->getContinue();
-		foreach ( $res as $r ) {
-			if ( $r['c']->mParentId !== null ) {
-				// If this is a child comment, add it to the child comments array for processing later
-				$childComments[] = $r;
-			} else {
+		if ( $pageid !== null ) {
+			$res = $pager->fetchResultsForPage( $pageid, true );
+
+			foreach ( $res as $r ) {
+				if ( $r['c']->mParentId !== null ) {
+					// If this is a child comment, add it to the child comments array for processing later
+					$childComments[] = $r;
+				} else {
+					$comments[] = $this->getCommentDataFromResult( $r );
+				}
+			}
+
+			// Process all the child comments, nesting them under their parents
+			foreach ( $childComments as $child ) {
+				foreach ( $comments as $index => $topLevelComment ) {
+					if ( $topLevelComment[ 'id' ] === $child['c']->mParentId ) {
+						$comments[ $index ][ 'children' ][] = $this->getCommentDataFromResult( $child );
+					}
+				}
+			}
+		} else {
+			$res = $pager->fetchAllResults();
+			foreach ( $res as $r ) {
 				$comments[] = $this->getCommentDataFromResult( $r );
 			}
 		}
 
-		// Process all the child comments, nesting them under their parents
-		foreach ( $childComments as $child ) {
-			foreach ( $comments as $index => $topLevelComment ) {
-				if ( $topLevelComment[ 'id' ] === $child['c']->mParentId ) {
-					$comments[ $index ][ 'children' ][] = $this->getCommentDataFromResult( $child );
-				}
-			}
-		}
+		$continue = $pager->getContinue();
 
 		return $this->getResponseFactory()->createJson( [
 			'query' => [

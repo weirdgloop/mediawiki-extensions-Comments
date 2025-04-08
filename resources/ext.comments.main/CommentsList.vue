@@ -1,5 +1,13 @@
 <template>
 	<div class="ext-comments-comments-list">
+		<div
+			v-if="store.singleComment !== null && initialLoadCompleted && store.comments.length"
+			class="comment-info-full"
+		>
+			<span>{{ $i18n( 'comments-single-mode-banner' ) }}</span>
+			&#183;
+			<a @click="disableSingleComment">{{ $i18n( 'comments-single-mode-viewall' ) }}</a>
+		</div>
 		<comment-item
 			v-for="c in store.comments"
 			:key="c.id"
@@ -26,7 +34,7 @@
 			{{ $i18n( 'comments-load-error', error ).text() }}
 		</div>
 		<div
-			v-else-if="$data.initialLoadCompleted && !store.comments.length"
+			v-else-if="initialLoadCompleted && !store.comments.length"
 			class="comment-info-full"
 		>
 			{{ $i18n( 'comments-empty' ).text() }}
@@ -67,6 +75,12 @@ module.exports = exports = defineComponent( {
 		};
 	},
 	methods: {
+		disableSingleComment() {
+			this.$data.store.singleComment = null;
+			const url = new URL( window.location )
+			url.hash = '';
+			history.pushState(null, '', url);
+		},
 		resetComments() {
 			this.$data.store.comments = [];
 			this.$data.moreContinue = null;
@@ -79,8 +93,11 @@ module.exports = exports = defineComponent( {
 				// Attempt to get the requested comment so that we can display it
 				api.get(`/comments/v0/comment/${ this.$data.store.singleComment }?sort=${ this.$data.store.sortMethod }` )
 					.done( ( res ) => {
-						this.$data.store.comments = [ new Comment( res.comment ) ];
-						this.$data.store.isMod = res.isMod;
+						const comment = new Comment( res.comment );
+						if ( ( comment.page.id === config.wgArticleId ) || this.$data.store.isSpecialComments ) {
+							this.$data.store.comments = [ comment ];
+							this.$data.store.isMod = res.isMod;
+						}
 					} )
 					.fail( ( _, data ) => {
 						if ( data && data.xhr && data.xhr.status ) {
@@ -88,6 +105,9 @@ module.exports = exports = defineComponent( {
 						} else {
 							this.$data.error = true;
 						}
+					} )
+					.always( () => {
+						this.$data.initialLoadCompleted = true;
 					} )
 			} else {
 				// Get a list of all comments for the current page
