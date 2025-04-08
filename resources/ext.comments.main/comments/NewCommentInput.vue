@@ -74,6 +74,7 @@ module.exports = exports = defineComponent( {
 			}
 
 			api.post( '/comments/v0/comment', body ).then( ( data ) => {
+				data.comment.ours = true;
 				let newComment = new Comment( data.comment );
 
 				if ( this.$props.parentId ) {
