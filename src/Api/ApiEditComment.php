@@ -85,7 +85,6 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		$comment->setEditedTimestamp( wfTimestamp( TS_ISO_8601 ) );
 		$comment->save();
 
 		return $this->getResponseFactory()->createJson( [

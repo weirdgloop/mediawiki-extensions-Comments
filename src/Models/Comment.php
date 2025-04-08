@@ -17,8 +17,8 @@ use WikitextContent;
 class Comment {
 	public const TABLE_NAME = 'com_comment';
 
-	/** @var int */
-	public $mId;
+	/** @var int|null */
+	public $mId = null;
 
 	/** @var Title */
 	private $mTitle;
@@ -32,8 +32,8 @@ class Comment {
 	/** @var int */
 	public $mActorId;
 
-	/** @var string */
-	public $mCreatedTimestamp;
+	/** @var string|null */
+	public $mCreatedTimestamp = null;
 
 	/** @var string|null */
 	public $mEditedTimestamp = null;
@@ -62,15 +62,13 @@ class Comment {
 	/** @var ActorStore */
 	private $actorStore;
 
-	/** @var Config  */
+	/** @var Config */
 	private $config;
 
 	/**
 	 * @internal
 	 */
 	public function __construct() {
-		$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601 );
-
 		$services = MediaWikiServices::getInstance();
 		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 		$this->actorStore = $services->getActorStore();
@@ -238,37 +236,11 @@ class Comment {
 	}
 
 	/**
-	 * Sets the timestamp for this comment.
-	 *
-	 * This method returns the current Comment object for easier chaining.
-	 *
-	 * @param string $ts
-	 * @return $this
-	 */
-	public function setTimestamp( $ts ) {
-		$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601, $ts );
-		return $this;
-	}
-
-	/**
 	 * The edited timestamp for the comment
 	 * @return string
 	 */
 	public function getEditedTimestamp() {
 		return $this->mEditedTimestamp;
-	}
-
-	/**
-	 * Sets the edited timestamp for this comment.
-	 *
-	 * This method returns the current Comment object for easier chaining.
-	 *
-	 * @param string|null $ts
-	 * @return $this
-	 */
-	public function setEditedTimestamp( $ts ) {
-		$this->mEditedTimestamp = $ts ? wfTimestamp( TS_ISO_8601, $ts ) : null;
-		return $this;
 	}
 
 	/**
@@ -449,19 +421,29 @@ class Comment {
 	 * @return int|null
 	 */
 	public function save() {
+		$isUpdate = $this->mId !== null;
+
+		if ( !$this->mCreatedTimestamp ) {
+			$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601 );
+		}
+
+		if ( $isUpdate ) {
+			$this->mEditedTimestamp = wfTimestampOrNull( TS_ISO_8601, 0 );
+		}
+
 		$row = [
 			'c_page' => $this->mPageId,
 			'c_actor' => $this->mActorId,
 			'c_parent' => $this->mParentId,
-			'c_timestamp' => wfTimestamp( TS_MW, $this->mCreatedTimestamp ),
+			'c_timestamp' => $this->dbw->timestamp( $this->mCreatedTimestamp ),
 			'c_deleted' => (int)$this->mDeleted,
 			'c_rating' => $this->mRating,
 			'c_html' => $this->mHtml,
 			'c_wikitext' => $this->mWikitext,
-			'c_edited_timestamp' => $this->mEditedTimestamp
+			'c_edited_timestamp' => $this->dbw->timestampOrNull( $this->mEditedTimestamp )
 		];
 
-		if ( !$this->mId ) {
+		if ( !$isUpdate ) {
 			// If there is no ID for this object, then we'll presume it doesn't exist.
 			$this->dbw->newInsertQueryBuilder()
 				->insertInto( self::TABLE_NAME )
@@ -490,8 +472,8 @@ class Comment {
 	public function toArray() {
 		return [
 			'id' => $this->mId,
-			'created' => $this->mCreatedTimestamp,
-			'edited' => $this->mEditedTimestamp,
+			'created' => wfTimestamp( TS_ISO_8601, $this->mCreatedTimestamp ),
+			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
 				'name' => $this->getActor()->getName(),
 				'anon' => !$this->getActor()->isRegistered()
