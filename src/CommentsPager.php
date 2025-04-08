@@ -254,7 +254,7 @@ class CommentsPager {
 					'c_id',
 					$conds,
 					__METHOD__,
-					$opts
+					$opts + [ 'LIMIT' => $this->limit ]
 				);
 			}
 

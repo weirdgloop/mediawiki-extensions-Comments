@@ -14,12 +14,12 @@ Requires MediaWiki 1.41+ and the [VisualEditor](https://www.mediawiki.org/wiki/E
 To allow users to be blocked from leaving comments, `$wgEnablePartialActionBlocks = true;` should also be set.
 
 ## Configuration
-| Variable                  | Description                                                                                          | Default |
-|---------------------------|------------------------------------------------------------------------------------------------------|---------|
-| $wgCommentsShowOnMainPage | If enabled, show comments on the main page                                                           | `false` |
-| $wgCommentsResultsPerPage | How many comments to load at a time                                                                  | `50`    |
-| $wgCommentsReadOnly       | If enabled, new comments can be posted and existing comments can be edited                           | `false` |
-| $wgCommentsUseAbuseFilter | If enabled, run comments through [AbuseFilter](https://www.mediawiki.org/wiki/Extension:AbuseFilter) | `true`  |
+| Variable                  | Description                                                                                                   | Default |
+|---------------------------|---------------------------------------------------------------------------------------------------------------|---------|
+| $wgCommentsShowOnMainPage | If enabled, show comments on the main page                                                                    | `false` |
+| $wgCommentsResultsPerPage | How many comments to load at a time by default. This value cannot be higher than 100 for performance reasons. | `50`    |
+| $wgCommentsReadOnly       | If enabled, new comments can be posted and existing comments can be edited                                    | `false` |
+| $wgCommentsUseAbuseFilter | If enabled, run comments through [AbuseFilter](https://www.mediawiki.org/wiki/Extension:AbuseFilter)          | `true`  |
 
 
 ## How does it work?

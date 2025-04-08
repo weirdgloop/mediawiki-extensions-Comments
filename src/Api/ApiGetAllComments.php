@@ -89,6 +89,11 @@ class ApiGetAllComments extends SimpleHandler {
 		$childComments = [];
 
 		$limit = (int)$params[ 'limit' ];
+		if ( $limit > 100 ) {
+			// Do not allow the limit to be above 100
+			$limit = 100;
+		}
+
 		$continue = $params[ 'continue' ];
 
 		$pager->setLimit( $limit );
