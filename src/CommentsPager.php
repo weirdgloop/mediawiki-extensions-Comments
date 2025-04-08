@@ -374,7 +374,7 @@ class CommentsPager {
 				// Whether this comment belongs to the current actor
 				'ours' => $this->currentActor === $c->mActorId,
 				// The page for the comment, only returned if there was no target page given to the pager instance
-				'p' => $row->page_title ? [
+				'p' => property_exists( $row, 'page_title' ) ? [
 					'title' => $row->page_title,
 					'ns' => (int)$row->page_namespace
 				] : null
