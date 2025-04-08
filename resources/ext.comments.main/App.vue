@@ -65,6 +65,7 @@ module.exports = exports = defineComponent( {
 		let singleCommentId = new URLSearchParams( window.location.hash.substring(1) ).get( 'commentid' );
 		if ( singleCommentId ) {
 			this.$data.store.singleComment = singleCommentId;
+			document.querySelector( '#ext-comments-container' ).scrollIntoView();
 		}
 
 		this.$data.store.isReadOnly = readOnly;
