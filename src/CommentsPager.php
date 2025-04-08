@@ -151,8 +151,8 @@ class CommentsPager {
 	 */
 	private function addUserRatingJoin( $builder ) {
 		if ( $this->currentActor !== null ) {
-			$builder->leftJoin( 'com_rating', null, [
-				'cr_comment = c_id',
+			$builder->leftJoin( 'com_rating', 'cr', [
+				'cr_comment = c.c_id',
 				'cr_actor' => $this->currentActor
 			] );
 		}
@@ -186,17 +186,17 @@ class CommentsPager {
 				$childConds[ 'c_deleted' ] = false;
 			}
 
-			$childConds[] = 'c_parent IN ' . $this->db->buildSelectSubquery(
-				Comment::TABLE_NAME,
-				'c_id',
-				$conds,
-				__METHOD__,
-				$opts + [ 'LIMIT' => $this->limit ]
-			);
-
 			$childSelect = $this->db->newSelectQueryBuilder()
-				->select( '*' )
-				->from( Comment::TABLE_NAME )
+				->select( [ 'c.*', 'cr.*' ] )
+				->from( Comment::TABLE_NAME, 'c' )
+				->join( $this->db->newSelectQueryBuilder()
+					->select( 'c_id' )
+					->table( Comment::TABLE_NAME )
+					->where( $conds )
+					->limit( $this->limit ),
+					'p',
+					[ 'c.c_parent = p.c_id' ]
+				)
 				->where( $childConds );
 
 			$this->addUserRatingJoin( $childSelect );
@@ -226,7 +226,7 @@ class CommentsPager {
 						__METHOD__,
 						$opts + [ 'LIMIT' => $this->limit + 1 ]
 					),
-					'a'
+					'c'
 				);
 
 			$this->addUserRatingJoin( $parentSelect );
@@ -249,7 +249,7 @@ class CommentsPager {
 
 		$builder = $this->db->newSelectQueryBuilder()
 			->select( '*' )
-			->from( Comment::TABLE_NAME )
+			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit ] )
 			->caller( __METHOD__ );
@@ -321,7 +321,7 @@ class CommentsPager {
 
 		$builder = $this->db->newSelectQueryBuilder()
 			->select( '*' )
-			->from( Comment::TABLE_NAME )
+			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit ] )
 			->caller( __METHOD__ );
@@ -371,7 +371,7 @@ class CommentsPager {
 
 		$childSelect = $this->db->newSelectQueryBuilder()
 			->select( '*' )
-			->from( Comment::TABLE_NAME )
+			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds + $childConds );
 
 		$this->addPageJoin( $childSelect );
@@ -380,7 +380,7 @@ class CommentsPager {
 
 		$parentSelect = $this->db->newSelectQueryBuilder()
 			->select( '*' )
-			->from( Comment::TABLE_NAME )
+			->from( Comment::TABLE_NAME, 'c' )
 			->where( [ 'c_id' => $parentId ] + $conds );
 
 		$this->addPageJoin( $parentSelect );
