@@ -386,7 +386,7 @@ class CommentsPager {
 		$this->addPageJoin( $parentSelect );
 		$this->addUserRatingJoin( $parentSelect );
 		$uqb->add( $parentSelect );
-		$uqb->orderBy( [ 'ORDER BY' => $this->getOrderCondition() ] );
+		$uqb->orderBy( $this->getOrderCondition() );
 
 		$res = $uqb->fetchResultSet();
 		$comments = [];
