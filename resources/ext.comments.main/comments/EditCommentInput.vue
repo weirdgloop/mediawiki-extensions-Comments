@@ -92,11 +92,12 @@ module.exports = exports = defineComponent( {
 	mounted() {
 		const $input = $( this.$refs.input );
 
-		if ( mw.commentsExt.ve.Editor.static.isSupported() ) {
+		const canUseVe = mw.commentsExt.ve.Editor.static.isSupported();
+		$input.val( canUseVe ? this.$props.comment.html : this.$props.comment.wikitext );
+
+		if ( canUseVe ) {
 			// Create the VE instance for this editor
 			this.$data.ve = new mw.commentsExt.ve.Editor( $input, this.$props.comment.html );
-		} else {
-			$input.val( this.$props.comment.wikitext );
 		}
 	}
 } );
