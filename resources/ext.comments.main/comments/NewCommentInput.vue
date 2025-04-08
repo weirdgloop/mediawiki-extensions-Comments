@@ -73,7 +73,15 @@ module.exports = exports = defineComponent( {
 				body[ 'wikitext' ] = $( this.$refs.input ).val();
 			}
 
-			api.post( '/comments/v0/comment', body ).then( ( data ) => {
+			console.log('html is', body[ 'html' ]);
+
+			// Use .ajax here rather than .post to circumvent bug: https://bugs.jquery.com/ticket/12326/
+			api.ajax( '/comments/v0/comment', {
+				type: 'POST',
+				data: JSON.stringify( body ),
+				dataType: 'json',
+				contentType: 'application/json'
+			} ).then( ( data ) => {
 				data.comment.ours = true;
 				let newComment = new Comment( data.comment );
 
