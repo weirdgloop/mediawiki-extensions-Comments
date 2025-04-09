@@ -323,7 +323,7 @@ class CommentsPager {
 			->select( '*' )
 			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds )
-			->options( $opts + [ 'LIMIT' => $this->limit ] )
+			->options( $opts + [ 'LIMIT' => $this->limit + 1 ] )
 			->caller( __METHOD__ );
 
 		$this->addPageJoin( $builder );
