@@ -18,6 +18,8 @@ const store = reactive( {
 	// If this is set to a comment ID, then the UI will render this comment and its children only,
 	// rather than the entire comment tree.
 	singleComment: null,
+	// Whether to filter the comments displayed by a specific user
+	filterByUser: null
 } )
 
 module.exports = store;

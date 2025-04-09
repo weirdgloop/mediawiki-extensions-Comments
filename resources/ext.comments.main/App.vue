@@ -45,11 +45,20 @@ module.exports = exports = defineComponent( {
 		let readOnly = mw.config.get( 'wgComments' ).readOnly;
 
 		const handleHashChange = () => {
-			// Get current URL, and determine whether we should only be showing a single comment
-			let singleCommentId = new URLSearchParams( window.location.hash.substring(1) ).get( 'commentid' );
+			const params = new URLSearchParams( window.location.hash.substring(1) );
+
+			// Determine whether we should only be showing a single comment
+			let singleCommentId = params.get( 'comment' );
 			if ( singleCommentId ) {
 				this.$data.store.singleComment = singleCommentId;
 				document.querySelector( '#ext-comments-container' ).scrollIntoView();
+			}
+
+			// Filters
+			let targetUser = params.get( 'user' );
+			if ( targetUser ) {
+				targetUser = targetUser.trim();
+				this.$data.store.filterByUser = targetUser.charAt(0).toUpperCase() + targetUser.substring(1);
 			}
 		}
 

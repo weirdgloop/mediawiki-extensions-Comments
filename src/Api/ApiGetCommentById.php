@@ -115,7 +115,7 @@ class ApiGetCommentById extends SimpleHandler {
 				'children' => $childComments
 			] ),
 			// Piggyback off this API call to return some extra info about the logged in user which the UI will use
-			'isMod' => Utils::canUserModerate( $this->getAuthority() )
+			'isMod' => $showDeleted
 		] );
 	}
 

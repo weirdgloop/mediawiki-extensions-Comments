@@ -19,6 +19,12 @@ class SpecialComments extends SpecialPage {
 	 * @return void
 	 */
 	public function execute( $subPage ) {
+		if ( $subPage ) {
+			$this->getOutput()->redirect(
+				$this->getPageTitle()->createFragmentTarget( 'user=' . $subPage )->getFullURL()
+			);
+		}
+
 		$out = $this->getOutput();
 		$this->setHeaders();
 

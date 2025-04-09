@@ -160,7 +160,7 @@ module.exports = exports = defineComponent( {
 		},
 		targetParentText() {
 			const url = new URL( document.location );
-			url.hash = `commentid=${this.comment.parent}`;
+			url.hash = `comment=${this.comment.parent}`;
 
 			return mw.message( 'comments-parent-link',
 				`<a href="${url}">${ mw.message( 'comments-parent-link-inner' ) }</a>`
@@ -194,7 +194,7 @@ module.exports = exports = defineComponent( {
 		},
 		linkComment() {
 			const url = new URL(window.location);
-			url.hash = 'commentid=' + this.$props.comment.id;
+			url.hash = 'comment=' + this.$props.comment.id;
 			navigator.clipboard.writeText( url.href );
 			mw.notify( mw.msg( 'comments-action-link-copied' ), { tag: 'copy-comment' } );
 		}

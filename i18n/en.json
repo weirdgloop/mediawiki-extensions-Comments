@@ -48,10 +48,12 @@
 	"comments-action-label-link": "Copy link",
 	"comments-action-link-copied": "Copied link to the clipboard",
 	"comments-single-mode-banner": "Displaying a single comment thread",
-	"comments-single-mode-viewall": "View all comments",
+	"comments-viewall": "View all comments",
 	"comments-anon": "Anonymous",
 	"comments-no-script": "You must have JavaScript enabled in your browser to view and interact with comments.",
 	"comments-page-link": "Posted on $1",
 	"comments-parent-link": "in reply to a $1",
-	"comments-parent-link-inner": "comment"
+	"comments-parent-link-inner": "comment",
+	"comments-user-filter-banner": "Displaying comments by $1",
+	"comments-contributions": "comments"
 }

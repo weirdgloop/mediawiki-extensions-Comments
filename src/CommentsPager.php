@@ -58,6 +58,11 @@ class CommentsPager {
 	private ?string $sortMethod = null;
 
 	/**
+	 * @var int|null
+	 */
+	private ?int $filterByActor = null;
+
+	/**
 	 * @param array $options
 	 * @param int|null $currentActor
 	 * @param string|null $sortMethod
@@ -65,7 +70,8 @@ class CommentsPager {
 	public function __construct(
 		array $options,
 		int $currentActor = null,
-		?string $sortMethod = self::SORT_DATE_DESC
+		?string $sortMethod = self::SORT_DATE_DESC,
+		?int $filterByActor = null
 	) {
 		$services = MediaWikiServices::getInstance();
 
@@ -78,6 +84,10 @@ class CommentsPager {
 
 		$this->includeDeleted = !empty( $options['includeDeleted'] );
 		$this->sortMethod = $sortMethod;
+
+		if ( $filterByActor ) {
+			$this->filterByActor = $filterByActor;
+		}
 	}
 
 	/**
@@ -171,6 +181,10 @@ class CommentsPager {
 
 		if ( !$this->includeDeleted ) {
 			$conds[ 'c_deleted' ] = false;
+		}
+
+		if ( $this->filterByActor !== null ) {
+			$conds[ 'c_actor' ] = $this->filterByActor;
 		}
 
 		$opts = [
@@ -301,6 +315,10 @@ class CommentsPager {
 
 		if ( !$this->includeDeleted ) {
 			$conds[ 'c_deleted' ] = false;
+		}
+
+		if ( $this->filterByActor !== null ) {
+			$conds[ 'c_actor' ] = $this->filterByActor;
 		}
 
 		$opts = [

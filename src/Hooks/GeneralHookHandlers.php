@@ -6,14 +6,19 @@ use MediaWiki\Block\Hook\GetAllBlockActionsHook;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\Comments\Utils;
 use MediaWiki\Hook\BeforePageDisplayHook;
+use MediaWiki\Hook\ContributionsToolLinksHook;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
+use MediaWiki\SpecialPage\SpecialPage;
+use MediaWiki\Title\Title;
 use Skin;
 
 class GeneralHookHandlers implements
 	GetAllBlockActionsHook,
 	BeforePageDisplayHook,
-	ResourceLoaderGetConfigVarsHook
+	ResourceLoaderGetConfigVarsHook,
+	ContributionsToolLinksHook
 {
 	private Config $config;
 
@@ -60,5 +65,21 @@ class GeneralHookHandlers implements
 			'resultsPerPage' => $config->get( 'CommentsResultsPerPage' ),
 			'readOnly' => $config->get( 'CommentsReadOnly' )
 		];
+	}
+
+	/**
+	 * @param int $id
+	 * @param Title $title
+	 * @param array &$tools
+	 * @param SpecialPage $specialPage
+	 * @return void
+	 */
+	public function onContributionsToolLinks( $id, Title $title, array &$tools, SpecialPage $specialPage ) {
+		$username = $title->getText();
+
+		$tools['commentcontribs'] = MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
+			SpecialPage::getTitleFor( 'Comments' )->createFragmentTarget( 'user=' . $username ),
+			$specialPage->msg( 'comments-contributions', $username )
+		);
 	}
 }

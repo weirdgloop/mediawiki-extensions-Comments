@@ -45,7 +45,8 @@
 		"LoadExtensionSchemaUpdates": "schema",
 		"GetAllBlockActions": "main",
 		"BeforePageDisplay": "main",
-		"ResourceLoaderGetConfigVars": "main"
+		"ResourceLoaderGetConfigVars": "main",
+		"ContributionsToolLinks": "main"
 	},
 	"AvailableRights": [
 		"comments",
@@ -71,7 +72,8 @@
 			"services": [
 				"TitleFactory",
 				"ActorStore",
-				"DBLoadBalancerFactory"
+				"DBLoadBalancerFactory",
+				"UserNameUtils"
 			]
 		},
 		{
@@ -81,7 +83,8 @@
 			"services": [
 				"TitleFactory",
 				"ActorStore",
-				"DBLoadBalancerFactory"
+				"DBLoadBalancerFactory",
+				"UserNameUtils"
 			]
 		},
 		{
@@ -209,12 +212,13 @@
 				"comments-action-label-link",
 				"comments-action-link-copied",
 				"comments-single-mode-banner",
-				"comments-single-mode-viewall",
+				"comments-viewall",
 				"comments-anon",
 				"comments-loading",
 				"comments-page-link",
 				"comments-parent-link",
-				"comments-parent-link-inner"
+				"comments-parent-link-inner",
+				"comments-user-filter-banner"
 			]
 		},
 		"ext.comments.ve.desktop": {

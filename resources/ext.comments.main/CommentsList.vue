@@ -6,7 +6,15 @@
 		>
 			<span>{{ $i18n( 'comments-single-mode-banner' ) }}</span>
 			&#183;
-			<a @click="disableSingleComment">{{ $i18n( 'comments-single-mode-viewall' ) }}</a>
+			<a @click="disableSingleComment">{{ $i18n( 'comments-viewall' ) }}</a>
+		</div>
+		<div
+			v-else-if="store.filterByUser"
+			class="comment-info-full"
+		>
+			<span>{{ $i18n( 'comments-user-filter-banner', store.filterByUser ) }}</span>
+			&#183;
+			<a @click="disableUserFilter">{{ $i18n( 'comments-viewall' ) }}</a>
 		</div>
 		<comment-item
 			v-for="c in store.comments"
@@ -79,6 +87,10 @@ module.exports = exports = defineComponent( {
 			this.$data.store.singleComment = null;
 			window.location.hash = '';
 		},
+		disableUserFilter() {
+			this.$data.store.filterByUser = null;
+			window.location.hash = '';
+		},
 		resetComments() {
 			this.$data.store.comments = [];
 			this.$data.moreContinue = null;
@@ -111,7 +123,8 @@ module.exports = exports = defineComponent( {
 				// Get a list of all comments for the current page
 				const qsp = new URLSearchParams( {
 					limit: config.wgComments.resultsPerPage,
-					sort: this.$data.store.sortMethod
+					sort: this.$data.store.sortMethod,
+					user: this.$data.store.filterByUser ?? ''
 				} );
 				if ( this.$data.moreContinue ) {
 					qsp.set( 'continue', this.$data.moreContinue );
@@ -173,10 +186,14 @@ module.exports = exports = defineComponent( {
 		},
 		'store.singleComment': {
 			immediate: false,
-			handler( oldVal, newVal ) {
-				if ( oldVal !== newVal ) {
-					this.resetComments();
-				}
+			handler() {
+				this.resetComments();
+			}
+		},
+		'store.filterByUser': {
+			immediate: false,
+			handler() {
+				this.resetComments();
 			}
 		}
 	},
