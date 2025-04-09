@@ -44,12 +44,17 @@ module.exports = exports = defineComponent( {
 		// When the app first loads, determine whether we should be displaying the comments in a read-only form
 		let readOnly = mw.config.get( 'wgComments' ).readOnly;
 
-		// Get current URL, and determine whether we should only be showing a single comment
-		let singleCommentId = new URLSearchParams( window.location.hash.substring(1) ).get( 'commentid' );
-		if ( singleCommentId ) {
-			this.$data.store.singleComment = singleCommentId;
-			document.querySelector( '#ext-comments-container' ).scrollIntoView();
+		const handleHashChange = () => {
+			// Get current URL, and determine whether we should only be showing a single comment
+			let singleCommentId = new URLSearchParams( window.location.hash.substring(1) ).get( 'commentid' );
+			if ( singleCommentId ) {
+				this.$data.store.singleComment = singleCommentId;
+				document.querySelector( '#ext-comments-container' ).scrollIntoView();
+			}
 		}
+
+		window.addEventListener( 'hashchange', handleHashChange )
+		handleHashChange(); // fire it once on page load
 
 		this.$data.store.isReadOnly = readOnly;
 

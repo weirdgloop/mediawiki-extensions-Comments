@@ -77,9 +77,7 @@ module.exports = exports = defineComponent( {
 	methods: {
 		disableSingleComment() {
 			this.$data.store.singleComment = null;
-			const url = new URL( window.location )
-			url.hash = '';
-			history.pushState(null, '', url);
+			window.location.hash = '';
 		},
 		resetComments() {
 			this.$data.store.comments = [];
@@ -176,7 +174,7 @@ module.exports = exports = defineComponent( {
 		'store.singleComment': {
 			immediate: false,
 			handler( oldVal, newVal ) {
-				if ( oldVal !== newVal && newVal !== null ) {
+				if ( oldVal !== newVal ) {
 					this.resetComments();
 				}
 			}
