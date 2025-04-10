@@ -1,5 +1,5 @@
 <template>
-	<div class="ext-comments-comment-item" :class="{ 'is-highlighted': parseInt( store.singleComment ) === comment.id }" :data-comment-id="comment.id" :data-deleted="comment.deleted">
+	<div class="ext-comments-comment-item" :class="{ 'is-highlighted': parseInt( store.singleComment ) === comment.id }" :data-comment-id="comment.id" :data-deleted="comment.deleted !== null">
 		<div>
 			<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
 			<div class="comment-body">
@@ -43,7 +43,7 @@
 							:title="$i18n( 'comments-action-label-edit' ).text()"
 						></comment-action>
 						<comment-action
-							v-if="!store.readOnly && ( comment.ours || store.isMod )"
+							v-if="!store.readOnly && ( comment.ours && comment.deleted === null ) || store.isMod"
 							class="comment-action-delete"
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"

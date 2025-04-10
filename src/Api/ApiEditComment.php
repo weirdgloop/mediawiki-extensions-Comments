@@ -9,6 +9,7 @@ use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Rest\Validator\JsonBodyValidator;
+use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -18,8 +19,14 @@ class ApiEditComment extends SimpleHandler {
 	 */
 	private CommentFactory $commentFactory;
 
-	public function __construct( CommentFactory $commentFactory ) {
+	/**
+	 * @var ActorStore
+	 */
+	private ActorStore $actorStore;
+
+	public function __construct( CommentFactory $commentFactory, ActorStore $actorStore ) {
 		$this->commentFactory = $commentFactory;
+		$this->actorStore = $actorStore;
 	}
 
 	/**
@@ -106,23 +113,27 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		$ownComment = $comment->getActor()->getId() === $this->getAuthority()->getUser()->getId();
+		$ownComment = $comment->getActor()->equals( $this->getAuthority()->getUser() );
 		$isMod = Utils::canUserModerate( $this->getAuthority() );
 
-		if ( $ownComment || $isMod ) {
-			if ( $comment->isDeleted() !== $delete ) {
-				$comment->setDeleted( $delete );
-				$comment->save();
-			}
+		if ( $ownComment && $delete === true ) {
+			$comment->setDeletedActor( $comment->getActor() );
+		} elseif ( $isMod ) {
+			$comment->setDeletedActor( $delete ? $this->getAuthority()->getUser() : null );
 		} else {
-			// Not user's own comment, no permission
+			// No permission
 			throw new LocalizedHttpException(
 				new MessageValue( 'comments-generic-error-notself' ), 400
 			);
 		}
 
+		$comment->save( false );
+
 		return $this->getResponseFactory()->createJson( [
-			'deleted' => $comment->isDeleted()
+			'deleted' => $comment->getDeletedActor() ? [
+				'name' => $comment->getDeletedActor()->getName(),
+				'id' => $comment->getDeletedActor()->getId()
+			] : null
 		] );
 	}
 

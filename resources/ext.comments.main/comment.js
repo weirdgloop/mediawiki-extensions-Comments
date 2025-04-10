@@ -6,7 +6,7 @@
 class Comment {
 	constructor( data ) {
 		this.id = data.id || null;
-		this.deleted = data.deleted !== null ? data.deleted : false;
+		this.deleted = data.deleted || null;
 		this.rating = data.rating || 0;
 		this.userRating = data.userRating || 0;
 		this.html = data.html || '';

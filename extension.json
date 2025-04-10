@@ -111,7 +111,8 @@
 			"method": [ "PUT", "DELETE" ],
 			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiEditComment",
 			"services": [
-				"Comments.CommentFactory"
+				"Comments.CommentFactory",
+				"ActorStore"
 			]
 		},
 		{

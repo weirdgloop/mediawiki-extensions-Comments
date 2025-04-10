@@ -44,8 +44,11 @@ class Comment {
 	/** @var int */
 	public $mParentId;
 
-	/** @var bool */
-	public $mDeleted = false;
+	/** @var UserIdentity */
+	public $mDeletedActor = null;
+
+	/** @var int */
+	public $mDeletedActorId = null;
 
 	/** @var int */
 	public $mRating = 0;
@@ -160,22 +163,36 @@ class Comment {
 	}
 
 	/**
-	 * Was this comment deleted by someone with permission?
+	 * Was this comment deleted?
 	 * @return bool
 	 */
 	public function isDeleted() {
-		return $this->mDeleted;
+		return $this->mDeletedActorId !== null;
 	}
 
 	/**
-	 * Sets whether or not this comment has been deleted.
+	 * The actor who deleted the comment
+	 * @return UserIdentity|null
+	 */
+	public function getDeletedActor() {
+		if ( $this->mDeletedActorId === null || $this->mDeletedActor !== null ) {
+			return $this->mDeletedActor;
+		}
+
+		$this->mDeletedActor = $this->actorStore->getActorById( $this->mDeletedActorId, $this->dbw );
+		return $this->mDeletedActor;
+	}
+
+	/**
+	 * Sets the user who deleted this comment.
 	 *
 	 * This method returns the current Comment object for easier chaining.
-	 * @param bool $deleted
+	 * @param UserIdentity|null $user
 	 * @return Comment
 	 */
-	public function setDeleted( $deleted ) {
-		$this->mDeleted = $deleted;
+	public function setDeletedActor( $user ) {
+		$this->mDeletedActor = $user;
+		$this->mDeletedActorId = $user ? $this->actorStore->acquireActorId( $user, $this->dbw ) : null;
 		return $this;
 	}
 
@@ -418,16 +435,17 @@ class Comment {
 
 	/**
 	 * Saves this object to the database and returns the insert ID
+	 * @param bool $setEditedTs
 	 * @return int|null
 	 */
-	public function save() {
+	public function save( bool $setEditedTs = true ) {
 		$isUpdate = $this->mId !== null;
 
 		if ( !$this->mCreatedTimestamp ) {
 			$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601 );
 		}
 
-		if ( $isUpdate ) {
+		if ( $isUpdate && $setEditedTs ) {
 			$this->mEditedTimestamp = wfTimestampOrNull( TS_ISO_8601, 0 );
 		}
 
@@ -436,7 +454,7 @@ class Comment {
 			'c_actor' => $this->mActorId,
 			'c_parent' => $this->mParentId,
 			'c_timestamp' => $this->dbw->timestamp( $this->mCreatedTimestamp ),
-			'c_deleted' => (int)$this->mDeleted,
+			'c_deleted_actor' => $this->mDeletedActorId,
 			'c_rating' => $this->mRating,
 			'c_html' => $this->mHtml,
 			'c_wikitext' => $this->mWikitext,
@@ -479,7 +497,10 @@ class Comment {
 				'anon' => !$this->getActor()->isRegistered()
 			],
 			'parent' => $this->mParentId,
-			'deleted' => $this->mDeleted,
+			'deleted' => $this->getDeletedActor() ? [
+				'name' => $this->getDeletedActor()->getName(),
+				'id' => $this->getDeletedActor()->getId()
+			] : null,
 			'rating' => $this->mRating,
 			'html' => $this->mHtml,
 			'wikitext' => $this->mWikitext

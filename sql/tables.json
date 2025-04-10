@@ -34,10 +34,10 @@
 				"options": { "unsigned": true, "notnull": false }
 			},
 			{
-				"name": "c_deleted",
-				"comment": "Boolean for whether the comment is deleted or not",
-				"type": "mwtinyint",
-				"options": { "unsigned": true, "notnull": true, "default": 0 }
+				"name": "c_deleted_actor",
+				"comment": "ID of the actor who deleted this comment",
+				"type": "bigint",
+				"options": { "unsigned": true, "notnull": false }
 			},
 			{
 				"name": "c_rating",

@@ -180,7 +180,7 @@ class CommentsPager {
 		];
 
 		if ( !$this->includeDeleted ) {
-			$conds[ 'c_deleted' ] = false;
+			$conds[] = 'c_deleted_actor IS NULL';
 		}
 
 		if ( $this->filterByActor !== null ) {
@@ -197,7 +197,7 @@ class CommentsPager {
 			$childConds = [];
 
 			if ( !$this->includeDeleted ) {
-				$childConds[ 'c_deleted' ] = false;
+				$childConds[] = 'c_deleted_actor IS NULL';
 			}
 
 			$childSelect = $this->db->newSelectQueryBuilder()
@@ -314,7 +314,7 @@ class CommentsPager {
 		$conds = [];
 
 		if ( !$this->includeDeleted ) {
-			$conds[ 'c_deleted' ] = false;
+			$conds[] = 'c_deleted_actor IS NULL';
 		}
 
 		if ( $this->filterByActor !== null ) {
@@ -379,7 +379,7 @@ class CommentsPager {
 		$conds = [];
 
 		if ( !$this->includeDeleted ) {
-			$conds[ 'c_deleted' ] = false;
+			$conds[] = 'c_deleted_actor IS NULL';
 		}
 
 		$uqb = $this->db->newUnionQueryBuilder()->all();
