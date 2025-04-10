@@ -43,7 +43,7 @@ class CommentFactory {
 		$comment->mCreatedTimestamp = wfTimestamp( TS_MW, $row->c_timestamp );
 		$comment->mEditedTimestamp = wfTimestampOrNull( TS_MW, $row->c_edited_timestamp );
 
-		$comment->mDeletedActorId = (int)$row->c_deleted_actor;
+		$comment->mDeletedActorId = $row->c_deleted_actor;
 		$comment->mWikitext = (string)$row->c_wikitext;
 		$comment->mHtml = (string)$row->c_html;
 		$comment->mRating = (int)$row->c_rating;
