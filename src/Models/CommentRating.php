@@ -175,7 +175,7 @@ class CommentRating {
 			->execute();
 
 		$comment = $this->getComment();
-		if ( $prev === null ) {
+		if ( !$prev ) {
 			// User had not rated this comment before
 			if ( $this->mRating === -1 ) {
 				$comment->decrementRatingCount();

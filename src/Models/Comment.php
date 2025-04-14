@@ -306,6 +306,7 @@ class Comment {
 	 * value in the database, reloading this Comment object with the updated value.
 	 *
 	 * This method should ONLY be called on comments that already exist in the database.
+	 * @param int $amount
 	 * @return void
 	 */
 	public function incrementRatingCount( $amount = 1 ) {
@@ -327,6 +328,7 @@ class Comment {
 	 * value in the database, reloading this Comment object with the updated value.
 	 *
 	 * This method should ONLY be called on comments that already exist in the database.
+	 * @param int $amount
 	 * @return void
 	 */
 	public function decrementRatingCount( $amount = 1 ) {
