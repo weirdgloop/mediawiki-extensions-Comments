@@ -153,7 +153,8 @@ class CommentsPager {
 	 * @param SelectQueryBuilder $builder
 	 */
 	private function addPageJoin( $builder ) {
-		$builder->join( 'page', null, 'page_id = c_page' );
+		$builder->join( 'page', null, 'page_id = c_page' )
+			->select( [ 'page_id', 'page_namespace', 'page_title' ] );
 	}
 
 	/**

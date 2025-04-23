@@ -104,7 +104,7 @@ module.exports = exports = defineComponent( {
 				api.get(`/comments/v0/comment/${ this.$data.store.singleComment }?sort=${ this.$data.store.sortMethod }` )
 					.done( ( res ) => {
 						const comment = new Comment( res.comment );
-						if ( ( comment.page.id === config.wgArticleId ) || this.$data.store.isSpecialComments ) {
+						if ( ( comment.page && comment.page.id === config.wgArticleId ) || this.$data.store.isSpecialComments ) {
 							this.$data.store.comments = [ comment ];
 							this.$data.store.isMod = res.isMod;
 						}
