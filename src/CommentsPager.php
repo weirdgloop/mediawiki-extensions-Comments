@@ -164,7 +164,7 @@ class CommentsPager {
 			$builder->leftJoin( 'com_rating', 'cr', [
 				'cr_comment = c.c_id',
 				'cr_actor' => $this->currentActor
-			] );
+			] )->select( 'cr.*' );
 		}
 	}
 
@@ -201,7 +201,7 @@ class CommentsPager {
 			}
 
 			$childSelect = $this->db->newSelectQueryBuilder()
-				->select( [ 'c.*', 'cr.*' ] )
+				->select( 'c.*' )
 				->from( Comment::TABLE_NAME, 'c' )
 				->join( $this->db->newSelectQueryBuilder()
 					->select( 'c_id' )
@@ -231,7 +231,7 @@ class CommentsPager {
 			$conds[ 'c_parent' ] = null;
 
 			$parentSelect = $this->db->newSelectQueryBuilder()
-				->select( '*' )
+				->select( 'c.*' )
 				->from(
 					$this->db->buildSelectSubquery(
 						Comment::TABLE_NAME,
@@ -262,7 +262,7 @@ class CommentsPager {
 		}
 
 		$builder = $this->db->newSelectQueryBuilder()
-			->select( '*' )
+			->select( 'c.*' )
 			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit ] )
@@ -338,7 +338,7 @@ class CommentsPager {
 		}
 
 		$builder = $this->db->newSelectQueryBuilder()
-			->select( '*' )
+			->select( 'c.*' )
 			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit + 1 ] )
@@ -388,7 +388,7 @@ class CommentsPager {
 		];
 
 		$childSelect = $this->db->newSelectQueryBuilder()
-			->select( '*' )
+			->select( 'c.*' )
 			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds + $childConds );
 
@@ -397,7 +397,7 @@ class CommentsPager {
 		$uqb->add( $childSelect );
 
 		$parentSelect = $this->db->newSelectQueryBuilder()
-			->select( '*' )
+			->select( 'c.*' )
 			->from( Comment::TABLE_NAME, 'c' )
 			->where( [ 'c_id' => $parentId ] + $conds );
 
