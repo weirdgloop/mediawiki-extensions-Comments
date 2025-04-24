@@ -209,7 +209,8 @@ class CommentsPager {
 					->select( 'c_id' )
 					->table( Comment::TABLE_NAME )
 					->where( $conds )
-					->limit( $this->limit ),
+					->limit( $this->limit )
+					->options( $opts ),
 					'p',
 					[ 'c.c_parent = p.c_id' ]
 				)
