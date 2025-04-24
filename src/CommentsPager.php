@@ -178,6 +178,7 @@ class CommentsPager {
 	public function fetchResultsForPage( $pageId, $includeChildren ) {
 		$conds = [
 			'c_page' => $pageId,
+			'c_parent' => null
 		];
 
 		if ( !$this->includeDeleted ) {
@@ -228,8 +229,6 @@ class CommentsPager {
 					$opts[ 'OFFSET' ] = $this->continue;
 				}
 			}
-
-			$conds[ 'c_parent' ] = null;
 
 			$parentSelect = $this->db->newSelectQueryBuilder()
 				->select( 'c.*' )
