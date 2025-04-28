@@ -40,6 +40,7 @@
 	"comments-submit-error-spam": "Your comment has been blocked as it has been identified as harmful.",
 	"comments-upload-error-noperm": "You do not have permission to upload files to comments.",
 	"comments-upload-error-unknown": "An unknown error occurred while uploading the file. Code: $1",
+	"comments-rating-error-invalid": "Invalid value provided for rating.",
 	"comments-submit-cooldown": "Wait ($1)",
 	"comments-edited": "(edited $1)",
 	"comments-action-label-edit": "Edit comment",

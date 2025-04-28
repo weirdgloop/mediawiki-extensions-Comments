@@ -31,6 +31,13 @@ class ApiVoteComment extends SimpleHandler {
 		$commentId = (int)$params[ 'commentid' ];
 		$rating = (int)$body[ 'rating' ];
 
+		// Should be a valid value, otherwise fail the call
+		if ( $rating !== -1 && $rating !== 0 && $rating !== 1 ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'comments-rating-error-invalid' ), 400
+			);
+		}
+
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
