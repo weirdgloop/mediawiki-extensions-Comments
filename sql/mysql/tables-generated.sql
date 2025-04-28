@@ -17,6 +17,7 @@ CREATE TABLE /*_*/com_comment (
   INDEX c_parent (c_parent),
   INDEX c_page_timestamp (c_page, c_timestamp),
   INDEX c_actor_timestamp (c_actor, c_timestamp),
+  INDEX c_rating_timestamp (c_rating, c_timestamp),
   PRIMARY KEY(c_id)
 ) /*$wgDBTableOptions*/;
 

@@ -84,6 +84,11 @@
 				"name": "c_actor_timestamp",
 				"columns": [ "c_actor", "c_timestamp" ],
 				"unique": false
+			},
+			{
+				"name": "c_rating_timestamp",
+				"columns": [ "c_rating", "c_timestamp" ],
+				"unique": false
 			}
 		],
 		"pk": [

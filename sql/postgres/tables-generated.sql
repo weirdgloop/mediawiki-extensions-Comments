@@ -24,6 +24,8 @@ CREATE INDEX c_page_timestamp ON com_comment (c_page, c_timestamp);
 
 CREATE INDEX c_actor_timestamp ON com_comment (c_actor, c_timestamp);
 
+CREATE INDEX c_rating_timestamp ON com_comment (c_rating, c_timestamp);
+
 
 CREATE TABLE com_rating (
   cr_comment INT NOT NULL,
