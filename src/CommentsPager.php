@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\Comments;
 use MediaWiki\Extension\Comments\Models\Comment;
 use MediaWiki\Extension\Comments\Models\CommentRating;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\ActorStore;
 use stdClass;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
@@ -28,6 +29,11 @@ class CommentsPager {
 	 * @var IDatabase
 	 */
 	private IDatabase $db;
+
+	/**
+	 * @var ActorStore
+	 */
+	private ActorStore $actorStore;
 
 	/**
 	 * @var int|null If set, will retrieve the user's rating for each comment.
@@ -81,6 +87,7 @@ class CommentsPager {
 
 		$this->commentFactory = $services->getService( 'Comments.CommentFactory' );
 		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
+		$this->actorStore = $services->getActorStore();
 
 		$this->includeDeleted = !empty( $options['includeDeleted'] );
 		$this->sortMethod = $sortMethod;
@@ -170,6 +177,14 @@ class CommentsPager {
 	}
 
 	/**
+	 * @param SelectQueryBuilder $builder
+	 */
+	private function addActorJoin( $builder ) {
+		$builder->join( 'actor', null, 'actor_id = c_actor' )
+			->select( [ 'actor_id', 'actor_name', 'actor_user' ] );
+	}
+
+	/**
 	 * Fetches the comments for a particular page by its ID.
 	 * @param int $pageId
 	 * @param bool $includeChildren
@@ -217,6 +232,7 @@ class CommentsPager {
 				->where( $childConds );
 
 			$this->addUserRatingJoin( $childSelect );
+			$this->addActorJoin( $childSelect );
 			$uqb->add( $childSelect );
 
 			if ( $this->continue !== null ) {
@@ -245,6 +261,7 @@ class CommentsPager {
 				);
 
 			$this->addUserRatingJoin( $parentSelect );
+			$this->addActorJoin( $parentSelect );
 
 			$uqb->add( $parentSelect );
 			return $this->reallyFetchResultsForPage( $uqb->caller( __METHOD__ ) );
@@ -270,6 +287,7 @@ class CommentsPager {
 			->caller( __METHOD__ );
 
 		$this->addUserRatingJoin( $builder );
+		$this->addActorJoin( $builder );
 		return $this->reallyFetchResultsForPage( $builder );
 	}
 
@@ -286,7 +304,8 @@ class CommentsPager {
 
 		$parentsSeen = 0;
 		foreach ( $res as $row ) {
-			$c = $this->commentFactory->newFromRow( $row );
+			$user = $this->actorStore->newActorFromRow( $row );
+			$c = $this->commentFactory->newFromRow( $row, $user );
 			if ( $row->c_parent === null ) {
 				if ( $parentsSeen === $this->limit ) {
 					// This is the extra row we queried for to work out if there's more rows that can be requested.
@@ -347,6 +366,7 @@ class CommentsPager {
 
 		$this->addPageJoin( $builder );
 		$this->addUserRatingJoin( $builder );
+		$this->addActorJoin( $builder );
 
 		$res = $builder->fetchResultSet();
 		$prevContinue = $this->continue;
@@ -364,7 +384,8 @@ class CommentsPager {
 				}
 				continue;
 			}
-			$c = $this->commentFactory->newFromRow( $row );
+			$user = $this->actorStore->newActorFromRow( $row );
+			$c = $this->commentFactory->newFromRow( $row, $user );
 			$comments[] = $this->formatResult( $c, $row );
 		}
 
@@ -395,6 +416,7 @@ class CommentsPager {
 
 		$this->addPageJoin( $childSelect );
 		$this->addUserRatingJoin( $childSelect );
+		$this->addActorJoin( $childSelect );
 		$uqb->add( $childSelect );
 
 		$parentSelect = $this->db->newSelectQueryBuilder()
@@ -404,13 +426,15 @@ class CommentsPager {
 
 		$this->addPageJoin( $parentSelect );
 		$this->addUserRatingJoin( $parentSelect );
+		$this->addActorJoin( $parentSelect );
 		$uqb->add( $parentSelect );
 		$uqb->orderBy( $this->getOrderCondition() );
 
 		$res = $uqb->fetchResultSet();
 		$comments = [];
 		foreach ( $res as $row ) {
-			$c = $this->commentFactory->newFromRow( $row );
+			$user = $this->actorStore->newActorFromRow( $row );
+			$c = $this->commentFactory->newFromRow( $row, $user );
 			$comments[] = $this->formatResult( $c, $row );
 		}
 		return $comments;

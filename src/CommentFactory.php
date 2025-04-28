@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\Comments;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Comments\Models\Comment;
+use MediaWiki\User\UserIdentity;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
 
@@ -27,13 +28,19 @@ class CommentFactory {
 	/**
 	 * Create a new Comment object from a database row
 	 * @param stdClass $row
+	 * @param UserIdentity|null $user optional, instantiates the comment object with a UserIdentity object
 	 * @return Comment
 	 */
-	public function newFromRow( $row ) {
+	public function newFromRow( $row, $user = null ) {
 		$comment = new Comment();
 		$comment->mId = (int)$row->c_id;
 		$comment->mPageId = (int)$row->c_page;
-		$comment->mActorId = (int)$row->c_actor;
+
+		if ( $user !== null ) {
+			$comment->setActor( $user );
+		} else {
+			$comment->mActorId = (int)$row->c_actor;
+		}
 
 		$parentId = (int)$row->c_parent;
 		if ( !empty( $parentId ) ) {
