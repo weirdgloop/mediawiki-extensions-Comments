@@ -4,7 +4,7 @@
 			class="comment-rating-btn"
 			:title="$i18n( 'comments-rating-upvote' )"
 			data-type="upvote"
-			:value="currentVote === 1"
+			:value="this.$props.comment.userRating === 1"
 			@click="onButtonClick"
 			:disabled="waiting"
 		>
@@ -17,7 +17,7 @@
 			class="comment-rating-btn"
 			:title="$i18n( 'comments-rating-downvote' )"
 			data-type="downvote"
-			:value="currentVote === -1"
+			:value="this.$props.comment.userRating === -1"
 			@click="onButtonClick"
 			:disabled="waiting"
 		>
@@ -53,7 +53,6 @@ module.exports = exports = defineComponent( {
 	data() {
 		return {
 			store,
-			currentVote: this.$props.comment.userRating,
 			waiting: false
 		}
 	},
@@ -64,18 +63,24 @@ module.exports = exports = defineComponent( {
 			let newValue = 0;
 
 			if ( type === 'upvote' ) {
-				newValue = this.$data.currentVote === 1 ? 0 : 1;
+				newValue = this.$props.comment.userRating === 1 ? 0 : 1;
 			} else if ( type === 'downvote' ) {
-				newValue = this.$data.currentVote === -1 ? 0 : -1;
+				newValue = this.$props.comment.userRating === -1 ? 0 : -1;
 			}
+
+			// Change the UI state before the API call happens for quick visual feedback
+			const oldValue = this.$props.comment.userRating;
+			this.$props.comment.userRating = newValue;
 
 			api.post( `/comments/v0/comment/${this.$props.comment.id}/vote`, {
 				rating: newValue
 			} ).then( ( data ) => {
-				this.$data.currentVote = newValue;
 				this.$props.comment.rating = data.comment.rating;
 			} ).always( () => {
 				this.$data.waiting = false;
+			} ).fail( () => {
+				// Reset the UI state back to the previous value if the API call failed
+				this.$props.comment.userRating = oldValue
 			} )
 		}
 	},
