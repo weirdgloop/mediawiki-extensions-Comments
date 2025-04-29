@@ -44,26 +44,20 @@ module.exports = exports = defineComponent( {
 		// When the app first loads, determine whether we should be displaying the comments in a read-only form
 		let readOnly = mw.config.get( 'wgComments' ).readOnly;
 
-		const handleHashChange = () => {
-			const params = new URLSearchParams( window.location.hash.substring(1) );
+		const params = new URLSearchParams( window.location.search );
 
-			// Determine whether we should only be showing a single comment
-			let singleCommentId = params.get( 'comment' );
-			if ( singleCommentId ) {
-				this.$data.store.singleComment = singleCommentId;
-				document.querySelector( '#ext-comments-container' ).scrollIntoView();
-			}
-
-			// Filters
-			let targetUser = params.get( 'user' );
-			if ( targetUser ) {
-				targetUser = targetUser.trim();
-				this.$data.store.filterByUser = targetUser.charAt(0).toUpperCase() + targetUser.substring(1);
-			}
+		// Determine whether we should only be showing a single comment
+		let singleCommentId = params.get( 'comment' );
+		if ( singleCommentId ) {
+			this.$data.store.setSingleComment( singleCommentId );
 		}
 
-		window.addEventListener( 'hashchange', handleHashChange )
-		handleHashChange(); // fire it once on page load
+		// Filters
+		let targetUser = params.get( 'user' );
+		if ( targetUser ) {
+			targetUser = targetUser.trim();
+			this.$data.store.filterByUser = targetUser.charAt(0).toUpperCase() + targetUser.substring(1);
+		}
 
 		this.$data.store.isReadOnly = readOnly;
 

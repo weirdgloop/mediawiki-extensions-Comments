@@ -85,11 +85,11 @@ module.exports = exports = defineComponent( {
 	methods: {
 		disableSingleComment() {
 			this.$data.store.singleComment = null;
-			window.location.hash = '';
+			this.$data.store.resetUIState();
 		},
 		disableUserFilter() {
 			this.$data.store.filterByUser = null;
-			window.location.hash = '';
+			this.$data.store.resetUIState();
 		},
 		resetComments() {
 			this.$data.store.comments = [];

@@ -19,7 +19,19 @@ const store = reactive( {
 	// rather than the entire comment tree.
 	singleComment: null,
 	// Whether to filter the comments displayed by a specific user
-	filterByUser: null
+	filterByUser: null,
+	setSingleComment( singleCommentId ) {
+		this.singleComment = singleCommentId;
+		document.querySelector( '#ext-comments-container' ).scrollIntoView();
+	},
+	resetUIState() {
+		const url = new URL( window.location );
+		url.searchParams.delete( 'comment' );
+		url.searchParams.delete( 'user' );
+		this.singleComment = null;
+		this.filterByUser = null;
+		window.history.pushState( null, '', url );
+	}
 } )
 
 module.exports = store;

@@ -78,8 +78,10 @@ class GeneralHookHandlers implements
 		$username = $title->getText();
 
 		$tools['commentcontribs'] = MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
-			SpecialPage::getTitleFor( 'Comments' )->createFragmentTarget( 'user=' . $username ),
-			$specialPage->msg( 'comments-contributions', $username )
+			SpecialPage::getTitleFor( 'Comments' ),
+			$specialPage->msg( 'comments-contributions', $username ),
+			[],
+			[ 'user' => $username ]
 		);
 	}
 }

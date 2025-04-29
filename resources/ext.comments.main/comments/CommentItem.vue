@@ -29,7 +29,7 @@
 								class="comment-parent"
 								v-if="!store.singleComment && store.isSpecialComments && comment.parent"
 							>
-								<span v-html="targetParentText"></span>
+								<span @click="handleParentTextClick" v-html="targetParentText"></span>
 							</span>
 						</div>
 					</div>
@@ -160,7 +160,7 @@ module.exports = exports = defineComponent( {
 		},
 		targetParentText() {
 			const url = new URL( document.location );
-			url.hash = `comment=${this.comment.parent}`;
+			url.searchParams.set( 'comment', this.comment.parent );
 
 			return mw.message( 'comments-parent-link',
 				`<a href="${url}">${ mw.message( 'comments-parent-link-inner' ) }</a>`
@@ -194,9 +194,16 @@ module.exports = exports = defineComponent( {
 		},
 		linkComment() {
 			const url = new URL(window.location);
-			url.hash = 'comment=' + this.$props.comment.id;
+			url.searchParams.set( 'comment', this.comment.id );
 			navigator.clipboard.writeText( url.href );
 			mw.notify( mw.msg( 'comments-action-link-copied' ), { tag: 'copy-comment' } );
+		},
+		handleParentTextClick(e) {
+			if ( e.target.tagName === 'A' ) {
+				e.preventDefault();
+				this.store.singleComment = this.comment.parent;
+				window.history.pushState( null, '', e.target.href );
+			}
 		}
 	},
 	setup() {
