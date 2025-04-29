@@ -219,7 +219,8 @@
 				"comments-page-link",
 				"comments-parent-link",
 				"comments-parent-link-inner",
-				"comments-user-filter-banner"
+				"comments-user-filter-banner",
+				"comments-view-replies"
 			]
 		},
 		"ext.comments.ve.desktop": {

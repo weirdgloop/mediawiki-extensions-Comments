@@ -23,6 +23,10 @@ const store = reactive( {
 	setSingleComment( singleCommentId ) {
 		this.singleComment = singleCommentId;
 		document.querySelector( '#ext-comments-container' ).scrollIntoView();
+
+		const url = new URL( window.location );
+		url.searchParams.set( 'comment', singleCommentId );
+		window.history.pushState( null, '', url );
 	},
 	resetUIState() {
 		const url = new URL( window.location );

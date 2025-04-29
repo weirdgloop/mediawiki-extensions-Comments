@@ -21,6 +21,9 @@ class Comment {
 		/** @type Comment[] */
 		this.children = [];
 
+		// Only returned if we are on Special:Comments
+		this.numChildren = data.numChildren || 0;
+
 		if ( data.children !== undefined ) {
 			for ( const child of data.children ) {
 				this.children.push( new Comment( child ) );

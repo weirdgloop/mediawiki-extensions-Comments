@@ -57,7 +57,8 @@ class ApiGetAllComments extends SimpleHandler {
 			'children' => [],
 			'userRating' => $r[ 'ur' ],
 			'ours' => $r[ 'ours' ],
-			'page' => $r[ 'p' ]
+			'page' => $r[ 'p' ],
+			'numChildren' => $r[ 'num_children' ]
 		];
 	}
 

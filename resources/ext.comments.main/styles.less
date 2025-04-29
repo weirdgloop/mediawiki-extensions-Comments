@@ -32,20 +32,26 @@
 		margin-bottom: 1em;
 	}
 
-	.comment-reply-button {
-		margin-top: 0.2em;
-		background: none;
-		border: 0;
-		font-weight: 200;
-		font-size: 0.8em;
-		width: fit-content;
+	.comment-footer {
 		display: flex;
-		justify-content: center;
 		align-items: center;
-		gap: 0.3em;
+		gap: 0.5em;
+		margin-top: 0.2em;
 
-		.cdx-icon {
-			color: var(--comments-muted);
+		button, a {
+			font-weight: 200;
+			font-size: 0.8em;
+			background: none;
+			border: 0;
+			width: fit-content;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 0.3em;
+
+			.cdx-icon {
+				color: var(--comments-muted);
+			}
 		}
 	}
 

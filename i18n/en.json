@@ -56,5 +56,6 @@
 	"comments-parent-link": "in reply to a $1",
 	"comments-parent-link-inner": "comment",
 	"comments-user-filter-banner": "Displaying comments by $1",
-	"comments-contributions": "comments"
+	"comments-contributions": "comments",
+	"comments-view-replies": "View replies ($1)"
 }

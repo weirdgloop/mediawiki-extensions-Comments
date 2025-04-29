@@ -78,15 +78,23 @@
 				></new-comment-input>
 			</div>
 		</div>
-		<button
-			v-if="!parentId && !isWritingReply && !comment.deleted"
-			class="comment-reply-button"
-			@click="isWritingReply = true"
-		>
-			<cdx-icon :icon="cdxIconShare" dir="rtl" size="small"></cdx-icon>
-			<span>{{ $i18n( 'comments-post-placeholder-child' ) }}</span>
-		</button>
-	</div>
+		<div class="comment-footer">
+			<button
+				v-if="!parentId && !isWritingReply && !comment.deleted"
+				class="comment-reply-button"
+				@click="isWritingReply = true"
+			>
+				<cdx-icon :icon="cdxIconShare" dir="rtl" size="small"></cdx-icon>
+				<span>{{ $i18n( 'comments-post-placeholder-child' ) }}</span>
+			</button>
+			<button
+				v-if="comment.numChildren > 0"
+				@click="store.setSingleComment( comment.id )"
+			>
+				{{ $i18n( 'comments-view-replies', this.comment.numChildren ) }}
+			</button>
+		</div>
+		</div>
 </template>
 
 <script>

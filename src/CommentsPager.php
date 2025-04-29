@@ -358,7 +358,12 @@ class CommentsPager {
 		}
 
 		$builder = $this->db->newSelectQueryBuilder()
-			->select( 'c.*' )
+			->select( [ 'c.*', '(' . $this->db->newSelectQueryBuilder()
+				->select( 'COUNT(*)' )
+				->from( Comment::TABLE_NAME, 'c2' )
+				->where( [ 'c2.c_parent = c.c_id' ] )
+				->getSQL() . ') as num_children'
+			] )
 			->from( Comment::TABLE_NAME, 'c' )
 			->where( $conds )
 			->options( $opts + [ 'LIMIT' => $this->limit + 1 ] )
@@ -458,7 +463,8 @@ class CommentsPager {
 				'title' => $row->page_title,
 				'ns' => (int)$row->page_namespace,
 				'id' => (int)$row->page_id
-			] : null
+			] : null,
+			'num_children' => property_exists( $row, 'num_children' ) ? (int)$row->num_children : 0,
 		];
 	}
 }
