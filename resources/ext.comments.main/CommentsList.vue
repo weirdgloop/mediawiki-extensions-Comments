@@ -97,6 +97,9 @@ module.exports = exports = defineComponent( {
 			this.loadComments();
 		},
 		loadComments() {
+			if ( !this.store.ready ) {
+				return;
+			}
 			this.$data.error = null;
 
 			if ( this.$data.store.singleComment ) {

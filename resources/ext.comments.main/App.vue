@@ -67,7 +67,9 @@ module.exports = exports = defineComponent( {
 			}
 		}, 1000 )
 
-		this.$data.store.ready = true;
+		Vue.nextTick( () => {
+			this.$data.store.ready = true;
+		} )
 	}
 } );
 </script>
