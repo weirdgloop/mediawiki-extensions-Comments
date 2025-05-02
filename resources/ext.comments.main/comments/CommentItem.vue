@@ -18,7 +18,7 @@
 							>{{ rating }}</span>
 							&#183;
 							<span class="comment-date" :title="comment.created">{{ date }}</span>
-							<span class="comment-edited" v-if="comment.edited !== null">  {{ $i18n( 'comments-edited', editedDate ).text() }}</span>
+							<span class="comment-edited" :title="comment.edited" v-if="comment.edited !== null">  {{ $i18n( 'comments-edited', editedDate ).text() }}</span>
 							<span
 								class="comment-page"
 								v-if="targetPage"
