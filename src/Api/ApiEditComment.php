@@ -1,10 +1,10 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Api;
+namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
-use MediaWiki\Extension\Comments\CommentFactory;
-use MediaWiki\Extension\Comments\Utils;
+use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
@@ -57,25 +57,25 @@ class ApiEditComment extends SimpleHandler {
 
 		if ( !$html && !$wikitext ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-empty' ), 400 );
+				new MessageValue( 'yappin-submit-error-empty' ), 400 );
 		}
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 
 		if ( $comment->isDeleted() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 		if ( $comment->getActor()->getId() !== $this->getAuthority()->getUser()->getId() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-notself' ), 400
+				new MessageValue( 'yappin-generic-error-notself' ), 400
 			);
 		}
 
@@ -88,7 +88,7 @@ class ApiEditComment extends SimpleHandler {
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-spam' ), 400
+				new MessageValue( 'yappin-submit-error-spam' ), 400
 			);
 		}
 
@@ -109,7 +109,7 @@ class ApiEditComment extends SimpleHandler {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 
@@ -123,7 +123,7 @@ class ApiEditComment extends SimpleHandler {
 		} else {
 			// No permission
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-notself' ), 400
+				new MessageValue( 'yappin-generic-error-notself' ), 400
 			);
 		}
 

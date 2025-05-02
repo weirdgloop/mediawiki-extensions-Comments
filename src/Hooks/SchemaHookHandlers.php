@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Hooks;
+namespace MediaWiki\Extension\Yappin\Hooks;
 
 use DatabaseUpdater;
 use MediaWiki\Installer\Hook\LoadExtensionSchemaUpdatesHook;

@@ -1,10 +1,10 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Hooks;
+namespace MediaWiki\Extension\Yappin\Hooks;
 
 use MediaWiki\Block\Hook\GetAllBlockActionsHook;
 use MediaWiki\Config\Config;
-use MediaWiki\Extension\Comments\Utils;
+use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Hook\ContributionsToolLinksHook;
 use MediaWiki\MediaWikiServices;
@@ -79,7 +79,7 @@ class GeneralHookHandlers implements
 
 		$tools['commentcontribs'] = MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
 			SpecialPage::getTitleFor( 'Comments' ),
-			$specialPage->msg( 'comments-contributions', $username ),
+			$specialPage->msg( 'yappin-contributions', $username ),
 			[],
 			[ 'user' => $username ]
 		);

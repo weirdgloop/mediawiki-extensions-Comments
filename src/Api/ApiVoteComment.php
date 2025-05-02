@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Api;
+namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
-use MediaWiki\Extension\Comments\CommentFactory;
+use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
@@ -34,7 +34,7 @@ class ApiVoteComment extends SimpleHandler {
 		// Should be a valid value, otherwise fail the call
 		if ( $rating !== -1 && $rating !== 0 && $rating !== 1 ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-rating-error-invalid' ), 400
+				new MessageValue( 'yappin-rating-error-invalid' ), 400
 			);
 		}
 
@@ -42,13 +42,13 @@ class ApiVoteComment extends SimpleHandler {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 
 		if ( $comment->isDeleted() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-generic-error-comment-missing', [ $commentId ] ), 400
+				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
 

@@ -2,7 +2,7 @@
 	<div class="comment-rating-actions">
 		<button
 			class="comment-rating-btn"
-			:title="$i18n( 'comments-rating-upvote' )"
+			:title="$i18n( 'yappin-rating-upvote' )"
 			data-type="upvote"
 			:value="this.$props.comment.userRating === 1"
 			@click="onButtonClick"
@@ -15,7 +15,7 @@
 		</button>
 		<button
 			class="comment-rating-btn"
-			:title="$i18n( 'comments-rating-downvote' )"
+			:title="$i18n( 'yappin-rating-downvote' )"
 			data-type="downvote"
 			:value="this.$props.comment.userRating === -1"
 			@click="onButtonClick"

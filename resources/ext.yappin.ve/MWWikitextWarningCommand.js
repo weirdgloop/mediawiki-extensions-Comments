@@ -23,12 +23,12 @@
 			return false;
 		}
 		// eslint-disable-next-line no-jquery/no-html
-		var $message = $( '<div>' ).html( ve.init.platform.getParsedMessage( 'comments-visualeditor-wikitext-warning' ) );
+		var $message = $( '<div>' ).html( ve.init.platform.getParsedMessage( 'yappin-visualeditor-wikitext-warning' ) );
 		ve.targetLinksToNewWindow( $message[ 0 ] );
 		ve.init.platform.notify(
 			$message.contents(),
 			ve.msg( 'visualeditor-wikitext-warning-title' ),
-			{ tag: 'comments-visualeditor-wikitext-warning' }
+			{ tag: 'yappin-visualeditor-wikitext-warning' }
 		).then( function ( message ) {
 			command.warning = message;
 		} );

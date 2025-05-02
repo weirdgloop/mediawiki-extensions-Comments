@@ -1,12 +1,12 @@
 {
-	"name": "Comments",
+	"name": "Yappin",
 	"version": "1.0",
 	"author": [
 		"[https://github.com/jayktaylor Jayden Bailey]",
 		"..."
 	],
 	"url": "https://weirdgloop.org",
-	"descriptionmsg": "comments-desc",
+	"descriptionmsg": "yappin-desc",
 	"license-name": "GPL-3.0-or-later",
 	"type": "specialpage",
 	"requires": {
@@ -16,7 +16,7 @@
 		}
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\Comments\\": "src/"
+		"MediaWiki\\Extension\\Yappin\\": "src/"
 	},
 	"MessagesDirs": {
 		"Comments": [
@@ -55,20 +55,20 @@
 	],
 	"HookHandlers": {
 		"main": {
-			"class": "MediaWiki\\Extension\\Comments\\Hooks\\GeneralHookHandlers",
+			"class": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers",
 			"services": [
 				"MainConfig"
 			]
 		},
 		"schema": {
-			"class": "MediaWiki\\Extension\\Comments\\Hooks\\SchemaHookHandlers"
+			"class": "MediaWiki\\Extension\\Yappin\\Hooks\\SchemaHookHandlers"
 		}
 	},
 	"RestRoutes": [
 		{
 			"path": "/comments/v0/all",
 			"method": "GET",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetAllComments",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiGetAllComments",
 			"services": [
 				"TitleFactory",
 				"ActorStore",
@@ -79,7 +79,7 @@
 		{
 			"path": "/comments/v0/page/{pageid}",
 			"method": "GET",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetAllComments",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiGetAllComments",
 			"services": [
 				"TitleFactory",
 				"ActorStore",
@@ -90,18 +90,18 @@
 		{
 			"path": "/comments/v0/comment",
 			"method": "POST",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiPostComment",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiPostComment",
 			"services": [
 				"TitleFactory",
-				"Comments.CommentFactory"
+				"Yappin.CommentFactory"
 			]
 		},
 		{
 			"path": "/comments/v0/comment/{commentid}",
 			"method": "GET",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiGetCommentById",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiGetCommentById",
 			"services": [
-				"Comments.CommentFactory",
+				"Yappin.CommentFactory",
 				"ActorStore",
 				"DBLoadBalancerFactory"
 			]
@@ -109,26 +109,26 @@
 		{
 			"path": "/comments/v0/comment/{commentid}/edit",
 			"method": [ "PUT", "DELETE" ],
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiEditComment",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiEditComment",
 			"services": [
-				"Comments.CommentFactory",
+				"Yappin.CommentFactory",
 				"ActorStore"
 			]
 		},
 		{
 			"path": "/comments/v0/comment/{commentid}/vote",
 			"method": "POST",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiVoteComment",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiVoteComment",
 			"services": [
-				"Comments.CommentFactory"
+				"Yappin.CommentFactory"
 			]
 		},
 		{
 			"path": "/comments/v0/comment/upload",
 			"method": "POST",
-			"class": "MediaWiki\\Extension\\Comments\\Api\\ApiUploadFile",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiUploadFile",
 			"services": [
-				"Comments.CommentFileService"
+				"Yappin.CommentFileService"
 			]
 		}
 	],
@@ -143,10 +143,10 @@
 		"Comments": "GlobalVarConfig::newInstance"
 	},
 	"ResourceModules": {
-		"ext.comments.main": {
+		"ext.yappin.main": {
 			"class": "MediaWiki\\ResourceLoader\\CodexModule",
-			"localBasePath": "resources/ext.comments.main",
-			"remoteExtPath": "Comments/resources/ext.comments.main",
+			"localBasePath": "resources/ext.yappin.main",
+			"remoteExtPath": "Comments/resources/ext.yappin.main",
 			"packageFiles": [
 				"index.js",
 				"util.js",
@@ -183,60 +183,60 @@
 				"oojs-ui-core",
 				"oojs-ui-widgets",
 				"moment",
-				"ext.comments.ve"
+				"ext.yappin.ve"
 			],
 			"messages": [
-				"comments-container-header",
-				"comments-rating",
-				"comments-empty",
-				"comments-continue",
-				"comments-sort-label",
-				"comments-sort-newest",
-				"comments-sort-oldest",
-				"comments-sort-highest-rated",
-				"comments-sort-lowest-rated",
-				"comments-post-placeholder-top-level",
-				"comments-post-placeholder-child",
-				"comments-post-submit-top-level",
-				"comments-post-submit-child",
+				"yappin-container-header",
+				"yappin-rating",
+				"yappin-empty",
+				"yappin-continue",
+				"yappin-sort-label",
+				"yappin-sort-newest",
+				"yappin-sort-oldest",
+				"yappin-sort-highest-rated",
+				"yappin-sort-lowest-rated",
+				"yappin-post-placeholder-top-level",
+				"yappin-post-placeholder-child",
+				"yappin-post-submit-top-level",
+				"yappin-post-submit-child",
 				"cancel",
-				"comments-rating-upvote",
-				"comments-rating-downvote",
-				"comments-rating-remove",
-				"comments-load-error",
-				"comments-submit-cooldown",
-				"comments-post-edit",
-				"comments-edited",
-				"comments-action-label-edit",
-				"comments-action-label-delete",
-				"comments-action-label-undelete",
-				"comments-action-label-link",
-				"comments-action-link-copied",
-				"comments-single-mode-banner",
-				"comments-viewall",
-				"comments-anon",
-				"comments-loading",
-				"comments-page-link",
-				"comments-parent-link",
-				"comments-parent-link-inner",
-				"comments-user-filter-banner",
-				"comments-view-replies"
+				"yappin-rating-upvote",
+				"yappin-rating-downvote",
+				"yappin-rating-remove",
+				"yappin-load-error",
+				"yappin-submit-cooldown",
+				"yappin-post-edit",
+				"yappin-edited",
+				"yappin-action-label-edit",
+				"yappin-action-label-delete",
+				"yappin-action-label-undelete",
+				"yappin-action-label-link",
+				"yappin-action-link-copied",
+				"yappin-single-mode-banner",
+				"yappin-viewall",
+				"yappin-anon",
+				"yappin-loading",
+				"yappin-page-link",
+				"yappin-parent-link",
+				"yappin-parent-link-inner",
+				"yappin-user-filter-banner",
+				"yappin-view-replies"
 			]
 		},
-		"ext.comments.ve.desktop": {
+		"ext.yappin.ve.desktop": {
 			"dependencies": [
 				"ext.visualEditor.core.desktop",
 				"ext.visualEditor.desktopTarget"
 			]
 		},
-		"ext.comments.ve.mobile": {
+		"ext.yappin.ve.mobile": {
 			"dependencies": [
 				"ext.visualEditor.core.mobile"
 			]
 		},
-		"ext.comments.ve": {
-			"localBasePath": "resources/ext.comments.ve",
-			"remoteExtPath": "Comments/resources/ext.comments.ve",
+		"ext.yappin.ve": {
+			"localBasePath": "resources/ext.yappin.ve",
+			"remoteExtPath": "Comments/resources/ext.yappin.ve",
 			"packageFiles": [
 				"index.js",
 				"registries.js",
@@ -257,15 +257,15 @@
 				"oojs-ui.styles.icons-editing-advanced"
 			],
 			"messages": [
-				"comments-visualeditor-wikitext-warning"
+				"yappin-visualeditor-wikitext-warning"
 			]
 		}
 	},
 	"SpecialPages": {
-		"Comments": "MediaWiki\\Extension\\Comments\\Specials\\SpecialComments"
+		"Comments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialComments"
 	},
 	"ExtensionMessagesFiles": {
-		"CommentsAlias": "src/Comments.i18n.alias.php"
+		"CommentsAlias": "src/Yappin.i18n.alias.php"
 	},
 	"manifest_version": 2
 }

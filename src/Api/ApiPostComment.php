@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Api;
+namespace MediaWiki\Extension\Yappin\Api;
 
-use MediaWiki\Extension\Comments\CommentFactory;
-use MediaWiki\Extension\Comments\Utils;
+use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
@@ -52,7 +52,7 @@ class ApiPostComment extends SimpleHandler {
 
 		if ( !$html && !$wikitext ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-empty' ), 400 );
+				new MessageValue( 'yappin-submit-error-empty' ), 400 );
 		}
 
 		$parent = null;
@@ -61,11 +61,11 @@ class ApiPostComment extends SimpleHandler {
 
 			if ( $parent->isDeleted() ) {
 				throw new LocalizedHttpException(
-					new MessageValue( 'comments-submit-error-parent-missing', $parentId ), 400 );
+					new MessageValue( 'yappin-submit-error-parent-missing', $parentId ), 400 );
 			}
 			if ( $parent->getParent() ) {
 				throw new LocalizedHttpException(
-					new MessageValue( 'comments-submit-error-parent-hasparent' ), 400 );
+					new MessageValue( 'yappin-submit-error-parent-hasparent' ), 400 );
 			}
 
 			$pageId = $parent->getTitle()->getId();
@@ -74,7 +74,7 @@ class ApiPostComment extends SimpleHandler {
 		$page = $this->titleFactory->newFromID( $pageId );
 		if ( !$page || !$page->exists() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-page-missing', $pageId ), 400 );
+				new MessageValue( 'yappin-submit-error-page-missing', $pageId ), 400 );
 		}
 
 		// Create a new comment
@@ -92,7 +92,7 @@ class ApiPostComment extends SimpleHandler {
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'comments-submit-error-spam' ), 400
+				new MessageValue( 'yappin-submit-error-spam' ), 400
 			);
 		}
 

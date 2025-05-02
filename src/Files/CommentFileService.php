@@ -1,11 +1,11 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Files;
+namespace MediaWiki\Extension\Yappin\Files;
 
 use FileBackend;
 use FileBackendGroup;
 use FSFileBackend;
-use MediaWiki\Extension\Comments\Utils;
+use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\WikiMap\WikiMap;
@@ -73,7 +73,7 @@ class CommentFileService {
 	 */
 	public function isAllowedToUpload( $authority ) {
 		if ( !$authority->isAllowed( 'comments-upload' ) ) {
-			return new MessageValue( 'comments-upload-error-noperm' );
+			return new MessageValue( 'yappin-upload-error-noperm' );
 		}
 		return Utils::canUserComment( $authority );
 	}

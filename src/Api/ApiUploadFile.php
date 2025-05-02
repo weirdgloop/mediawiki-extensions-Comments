@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Api;
+namespace MediaWiki\Extension\Yappin\Api;
 
-use MediaWiki\Extension\Comments\Files\CommentFileService;
-use MediaWiki\Extension\Comments\Files\CommentFileUpload;
+use MediaWiki\Extension\Yappin\Files\CommentFileService;
+use MediaWiki\Extension\Yappin\Files\CommentFileUpload;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
 use UploadBase;
@@ -69,7 +69,7 @@ class ApiUploadFile extends SimpleHandler {
 				break;
 			default:
 				return new MessageValue(
-					'comments-upload-error-unknown', [ $verification['status'] ] );
+					'yappin-upload-error-unknown', [ $verification['status'] ] );
 		}
 		return new MessageValue( $msg );
 	}

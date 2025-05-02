@@ -4,17 +4,17 @@
 			v-if="store.singleComment !== null && initialLoadCompleted && store.comments.length"
 			class="comment-info-full"
 		>
-			<span>{{ $i18n( 'comments-single-mode-banner' ) }}</span>
+			<span>{{ $i18n( 'yappin-single-mode-banner' ) }}</span>
 			&#183;
-			<a @click="disableSingleComment">{{ $i18n( 'comments-viewall' ) }}</a>
+			<a @click="disableSingleComment">{{ $i18n( 'yappin-viewall' ) }}</a>
 		</div>
 		<div
 			v-else-if="store.filterByUser"
 			class="comment-info-full"
 		>
-			<span>{{ $i18n( 'comments-user-filter-banner', store.filterByUser ) }}</span>
+			<span>{{ $i18n( 'yappin-user-filter-banner', store.filterByUser ) }}</span>
 			&#183;
-			<a @click="disableUserFilter">{{ $i18n( 'comments-viewall' ) }}</a>
+			<a @click="disableUserFilter">{{ $i18n( 'yappin-viewall' ) }}</a>
 		</div>
 		<comment-item
 			v-for="c in store.comments"
@@ -27,25 +27,25 @@
 			class="comment-info-full"
 			@click="loadComments"
 		>
-			{{ $i18n( 'comments-continue' ).text() }}
+			{{ $i18n( 'yappin-continue' ).text() }}
 		</button>
 		<div
 			v-if="loading"
 			class="comment-info-full"
 		>
-			{{ $i18n( 'comments-loading' ).text() }}
+			{{ $i18n( 'yappin-loading' ).text() }}
 		</div>
 		<div
 			v-else-if="error"
 			class="mw-message-box mw-message-box-error"
 		>
-			{{ $i18n( 'comments-load-error', error ).text() }}
+			{{ $i18n( 'yappin-load-error', error ).text() }}
 		</div>
 		<div
 			v-else-if="initialLoadCompleted && !store.comments.length"
 			class="comment-info-full"
 		>
-			{{ $i18n( 'comments-empty' ).text() }}
+			{{ $i18n( 'yappin-empty' ).text() }}
 		</div>
 	</div>
 </template>

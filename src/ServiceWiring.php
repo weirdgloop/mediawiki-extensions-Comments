@@ -1,8 +1,8 @@
 <?php
 
-namespace MediaWiki\Extension\Comments;
+namespace MediaWiki\Extension\Yappin;
 
-use MediaWiki\Extension\Comments\Files\CommentFileService;
+use MediaWiki\Extension\Yappin\Files\CommentFileService;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 
@@ -10,12 +10,12 @@ use MediaWiki\MediaWikiServices;
  * Comments wiring for MediaWiki services.
  */
 return [
-	'Comments.CommentFactory' => static function ( MediaWikiServices $services ): CommentFactory {
+	'Yappin.CommentFactory' => static function ( MediaWikiServices $services ): CommentFactory {
 		return new CommentFactory(
 			$services->getDBLoadBalancerFactory()
 		);
 	},
-	'Comments.CommentFileService' => static function ( MediaWikiServices $services ): CommentFileService {
+	'Yappin.CommentFileService' => static function ( MediaWikiServices $services ): CommentFileService {
 		return new CommentFileService(
 			$services->getFileBackendGroup(),
 			$services->getMainConfig()->get( MainConfigNames::UploadDirectory ),

@@ -15,7 +15,7 @@ class DeleteOrphanedFiles extends Maintenance {
 
 	public function execute() {
 		/** @var CommentFileService $cfs */
-		$cfs = $this->getServiceContainer()->getService( 'Comments.CommentFileService' );
+		$cfs = $this->getServiceContainer()->getService( 'Yappin.CommentFileService' );
 
 		$uploadedBefore = wfTimestamp( TS_MW, strtotime( '-1 day' ) );
 

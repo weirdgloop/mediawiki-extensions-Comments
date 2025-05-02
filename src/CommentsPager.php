@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\Comments;
+namespace MediaWiki\Extension\Yappin;
 
-use MediaWiki\Extension\Comments\Models\Comment;
-use MediaWiki\Extension\Comments\Models\CommentRating;
+use MediaWiki\Extension\Yappin\Models\Comment;
+use MediaWiki\Extension\Yappin\Models\CommentRating;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
 use stdClass;
@@ -85,7 +85,7 @@ class CommentsPager {
 			$this->currentActor = $currentActor;
 		}
 
-		$this->commentFactory = $services->getService( 'Comments.CommentFactory' );
+		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
 		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 		$this->actorStore = $services->getActorStore();
 

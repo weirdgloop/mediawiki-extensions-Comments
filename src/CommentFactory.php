@@ -1,9 +1,9 @@
 <?php
 
-namespace MediaWiki\Extension\Comments;
+namespace MediaWiki\Extension\Yappin;
 
 use InvalidArgumentException;
-use MediaWiki\Extension\Comments\Models\Comment;
+use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\User\UserIdentity;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;

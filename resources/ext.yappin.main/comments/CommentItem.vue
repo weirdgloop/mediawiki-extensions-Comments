@@ -6,7 +6,7 @@
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
 						<a class="comment-author" :href="userPageLink">
-							{{ comment.user.anon ? $i18n( 'comments-anon' ) : comment.user.name }}
+							{{ comment.user.anon ? $i18n( 'yappin-anon' ) : comment.user.name }}
 						</a>
 						<div class="comment-info">
 							<span
@@ -18,7 +18,7 @@
 							>{{ rating }}</span>
 							&#183;
 							<span class="comment-date" :title="comment.created">{{ date }}</span>
-							<span class="comment-edited" :title="comment.edited" v-if="comment.edited !== null">  {{ $i18n( 'comments-edited', editedDate ).text() }}</span>
+							<span class="comment-edited" :title="comment.edited" v-if="comment.edited !== null">  {{ $i18n( 'yappin-edited', editedDate ).text() }}</span>
 							<span
 								class="comment-page"
 								v-if="targetPage"
@@ -40,7 +40,7 @@
 							:disabled="store.isEditing === comment.id"
 							:icon="cdxIconEdit"
 							:on-click="() => store.isEditing = comment.id"
-							:title="$i18n( 'comments-action-label-edit' ).text()"
+							:title="$i18n( 'yappin-action-label-edit' ).text()"
 						></comment-action>
 						<comment-action
 							v-if="!store.readOnly && ( comment.ours && comment.deleted === null ) || store.isMod"
@@ -48,7 +48,7 @@
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"
 							:title="$i18n(
-							comment.deleted ? 'comments-action-label-undelete' : 'comments-action-label-delete'
+							comment.deleted ? 'yappin-action-label-undelete' : 'yappin-action-label-delete'
 						).text()"
 						></comment-action>
 						<comment-action
@@ -56,7 +56,7 @@
 							class="comment-action-link"
 							:on-click="linkComment"
 							:icon="cdxIconLink"
-							:title="$i18n( 'comments-action-label-link' ).text()"
+							:title="$i18n( 'yappin-action-label-link' ).text()"
 						></comment-action>
 					</div>
 				</div>
@@ -85,13 +85,13 @@
 				@click="isWritingReply = true"
 			>
 				<cdx-icon :icon="cdxIconShare" dir="rtl" size="small"></cdx-icon>
-				<span>{{ $i18n( 'comments-post-placeholder-child' ) }}</span>
+				<span>{{ $i18n( 'yappin-post-placeholder-child' ) }}</span>
 			</button>
 			<button
 				v-if="comment.numChildren > 0"
 				@click="store.setSingleComment( comment.id )"
 			>
-				{{ $i18n( 'comments-view-replies', this.comment.numChildren ) }}
+				{{ $i18n( 'yappin-view-replies', this.comment.numChildren ) }}
 			</button>
 		</div>
 		</div>
@@ -137,7 +137,7 @@ module.exports = exports = defineComponent( {
 	},
 	computed: {
 		rating() {
-			return mw.message( 'comments-rating',
+			return mw.message( 'yappin-rating',
 				mw.language.convertNumber( this.comment.rating ),
 				this.comment.rating
 			);
@@ -163,15 +163,15 @@ module.exports = exports = defineComponent( {
 			return null;
 		},
 		targetPageText() {
-			return mw.message( 'comments-page-link',
+			return mw.message( 'yappin-page-link',
 				`<a href="${this.targetPage.getUrl()}">${this.targetPage.getPrefixedText()}</a>` )
 		},
 		targetParentText() {
 			const url = new URL( document.location );
 			url.searchParams.set( 'comment', this.comment.parent );
 
-			return mw.message( 'comments-parent-link',
-				`<a href="${url}">${ mw.message( 'comments-parent-link-inner' ) }</a>`
+			return mw.message( 'yappin-parent-link',
+				`<a href="${url}">${ mw.message( 'yappin-parent-link-inner' ) }</a>`
 			);
 		}
 	},
@@ -184,7 +184,7 @@ module.exports = exports = defineComponent( {
 			} ).fail( ( _, result ) => {
 				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
 					result.xhr.responseJSON, 'messageTranslations' ) ) {
-					if ( result.xhr.responseJSON.errorKey === 'comments-submit-error-spam' ) {
+					if ( result.xhr.responseJSON.errorKey === 'yappin-submit-error-spam' ) {
 						// If the comment was rejected for spam/abuse, add a small cooldown
 						this.$data.store.globalCooldown = 10;
 					}
@@ -204,7 +204,7 @@ module.exports = exports = defineComponent( {
 			const url = new URL(window.location);
 			url.searchParams.set( 'comment', this.comment.id );
 			navigator.clipboard.writeText( url.href );
-			mw.notify( mw.msg( 'comments-action-link-copied' ), { tag: 'copy-comment' } );
+			mw.notify( mw.msg( 'yappin-action-link-copied' ), { tag: 'copy-comment' } );
 		},
 		handleParentTextClick(e) {
 			if ( e.target.tagName === 'A' ) {

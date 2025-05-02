@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\Comments;
+namespace MediaWiki\Extension\Yappin;
 
 use ExtensionRegistry;
 use MediaWiki\MediaWikiServices;
@@ -17,12 +17,12 @@ class Utils {
 	 */
 	public static function canUserComment( $userOrAuthority ) {
 		if ( !$userOrAuthority->isAllowed( 'comments' ) ) {
-			return new MessageValue( 'comments-submit-error-noperm' );
+			return new MessageValue( 'yappin-submit-error-noperm' );
 		}
 
 		$block = $userOrAuthority->getBlock();
 		if ( $block && ( $block->isSitewide() || $block->appliesToRight( 'comments' ) ) ) {
-			return new MessageValue( 'comments-submit-error-blocked' );
+			return new MessageValue( 'yappin-submit-error-blocked' );
 		}
 
 		return true;
@@ -48,9 +48,9 @@ class Utils {
 			ExtensionRegistry::getInstance()->isLoaded( 'MobileFrontend' ) &&
 			$services->getService( 'MobileFrontend.Context' )->shouldDisplayMobileView()
 		) ) {
-			$out->addModules( [ 'ext.comments.ve.desktop' ] );
+			$out->addModules( [ 'ext.yappin.ve.desktop' ] );
 		}
 
-		$out->addModules( [ 'ext.comments.main' ] );
+		$out->addModules( [ 'ext.yappin.main' ] );
 	}
 }

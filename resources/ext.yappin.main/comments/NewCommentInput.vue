@@ -8,9 +8,9 @@
 		</div>
 		<div class="comment-input-actions">
 			<cdx-button :disabled="store.globalCooldown" action="progressive" weight="primary" @click="submitComment">
-				<span v-if="store.globalCooldown">{{ $i18n( 'comments-submit-cooldown', store.globalCooldown ).text() }}</span>
-				<span v-else-if="isTopLevel">{{ $i18n( 'comments-post-submit-top-level' ).text() }}</span>
-				<span v-else>{{ $i18n( 'comments-post-submit-child' ).text() }}</span>
+				<span v-if="store.globalCooldown">{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}</span>
+				<span v-else-if="isTopLevel">{{ $i18n( 'yappin-post-submit-top-level' ).text() }}</span>
+				<span v-else>{{ $i18n( 'yappin-post-submit-child' ).text() }}</span>
 			</cdx-button>
 			<cdx-button action="destructive" @click="onCancel">
 				{{ $i18n( 'cancel' ).text() }}
@@ -96,7 +96,7 @@ module.exports = exports = defineComponent( {
 			} ).fail( ( _, result ) => {
 				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
 					result.xhr.responseJSON, 'messageTranslations' ) ) {
-					if ( result.xhr.responseJSON.errorKey === 'comments-submit-error-spam' ) {
+					if ( result.xhr.responseJSON.errorKey === 'yappin-submit-error-spam' ) {
 						// If the comment was rejected for spam/abuse, add a small cooldown
 						this.$data.store.globalCooldown = 10;
 					}

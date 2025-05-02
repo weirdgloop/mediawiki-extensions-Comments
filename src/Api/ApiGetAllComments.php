@@ -1,11 +1,11 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Api;
+namespace MediaWiki\Extension\Yappin\Api;
 
-use MediaWiki\Extension\Comments\CommentsPager;
-use MediaWiki\Extension\Comments\Models\Comment;
-use MediaWiki\Extension\Comments\Models\CommentRating;
-use MediaWiki\Extension\Comments\Utils;
+use MediaWiki\Extension\Yappin\CommentsPager;
+use MediaWiki\Extension\Yappin\Models\Comment;
+use MediaWiki\Extension\Yappin\Models\CommentRating;
+use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;

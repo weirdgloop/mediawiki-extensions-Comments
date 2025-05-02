@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Files;
+namespace MediaWiki\Extension\Yappin\Files;
 
 use InvalidArgumentException;
 use MediaWiki\MainConfigNames;

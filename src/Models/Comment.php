@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Models;
+namespace MediaWiki\Extension\Yappin\Models;
 
 use ExtensionRegistry;
 use InvalidArgumentException;

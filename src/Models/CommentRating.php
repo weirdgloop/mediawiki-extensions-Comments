@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaWiki\Extension\Comments\Models;
+namespace MediaWiki\Extension\Yappin\Models;
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
@@ -84,7 +84,7 @@ class CommentRating {
 	 */
 	public function getComment() {
 		if ( $this->mComment === null ) {
-			$this->mComment = MediaWikiServices::getInstance()->getService( 'Comments.CommentFactory' )
+			$this->mComment = MediaWikiServices::getInstance()->getService( 'Yappin.CommentFactory' )
 				->newFromId( $this->mCommentId );
 		}
 

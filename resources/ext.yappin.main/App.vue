@@ -6,7 +6,7 @@
 		v-show="!isWritingTopLevelComment"
 		@click="isWritingTopLevelComment = true"
 	>
-		<span>{{ $i18n( 'comments-post-placeholder-top-level' ).text() }}</span>
+		<span>{{ $i18n( 'yappin-post-placeholder-top-level' ).text() }}</span>
 	</button>
 	<new-comment-input
 		v-if="store.singleComment === null"
