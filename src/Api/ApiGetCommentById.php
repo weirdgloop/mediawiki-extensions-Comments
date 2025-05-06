@@ -102,7 +102,7 @@ class ApiGetCommentById extends SimpleHandler {
 		$parent = null;
 		foreach ( $res as $r ) {
 			$data = $this->getCommentDataFromResult( $r );
-			if ( $r['c']->mParentId !== null ) {
+			if ( $r['c']->mId !== $targetId ) {
 				// If this is a child comment, add it to the child comments array for processing later
 				$childComments[] = $data;
 			} else {
