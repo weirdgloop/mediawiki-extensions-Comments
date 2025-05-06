@@ -6,6 +6,7 @@ use ExtensionRegistry;
 use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
+use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
@@ -68,6 +69,9 @@ class Comment {
 	/** @var Config */
 	private $config;
 
+	/** @var CommentFactory */
+	private $commentFactory;
+
 	/**
 	 * @internal
 	 */
@@ -76,6 +80,7 @@ class Comment {
 		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
 		$this->actorStore = $services->getActorStore();
 		$this->config = $services->getMainConfig();
+		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
 	}
 
 	/**
@@ -143,6 +148,10 @@ class Comment {
 	 * @return Comment|null
 	 */
 	public function getParent() {
+		if ( !$this->mParent && $this->mParentId ) {
+			$this->mParent = $this->commentFactory->newFromId( $this->mParentId );
+		}
+
 		return $this->mParent;
 	}
 
