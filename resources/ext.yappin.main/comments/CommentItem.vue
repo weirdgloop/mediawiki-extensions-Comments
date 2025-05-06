@@ -80,7 +80,7 @@
 		</div>
 		<div class="comment-footer">
 			<button
-				v-if="!parentId && !isWritingReply && !comment.deleted"
+				v-if="!parentId && !isWritingReply && !comment.deleted && !comment.parent"
 				class="comment-reply-button"
 				@click="isWritingReply = true"
 			>
