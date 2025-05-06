@@ -49,7 +49,7 @@ module.exports = exports = defineComponent( {
 		// Determine whether we should only be showing a single comment
 		let singleCommentId = params.get( 'comment' );
 		if ( singleCommentId ) {
-			this.$data.store.setSingleComment( singleCommentId );
+			this.$data.store.singleComment = singleCommentId;
 		}
 
 		// Filters

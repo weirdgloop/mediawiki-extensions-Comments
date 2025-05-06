@@ -20,21 +20,12 @@ const store = reactive( {
 	singleComment: null,
 	// Whether to filter the comments displayed by a specific user
 	filterByUser: null,
-	setSingleComment( singleCommentId ) {
-		this.singleComment = singleCommentId;
-		document.querySelector( '#ext-comments-container' ).scrollIntoView();
-
-		const url = new URL( window.location );
-		url.searchParams.set( 'comment', singleCommentId );
-		window.history.pushState( null, '', url );
-	},
 	resetUIState() {
 		const url = new URL( window.location );
 		url.searchParams.delete( 'comment' );
 		url.searchParams.delete( 'user' );
 		this.singleComment = null;
 		this.filterByUser = null;
-		window.history.pushState( null, '', url );
 	}
 } )
 

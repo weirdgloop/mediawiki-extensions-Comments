@@ -87,12 +87,12 @@
 				<cdx-icon :icon="cdxIconShare" dir="rtl" size="small"></cdx-icon>
 				<span>{{ $i18n( 'yappin-post-placeholder-child' ) }}</span>
 			</button>
-			<button
+			<a
 				v-if="comment.numChildren > 0"
-				@click="store.setSingleComment( comment.id )"
+				:href="singleCommentLink"
 			>
 				{{ $i18n( 'yappin-view-replies', this.comment.numChildren ) }}
-			</button>
+			</a>
 		</div>
 		</div>
 </template>
@@ -111,6 +111,10 @@ const {
 } = require( '../icons.json' );
 
 const api = new mw.Rest();
+
+const config = mw.config.get( [
+	'wgServer'
+] );
 
 module.exports = exports = defineComponent( {
 	name: 'CommentItem',
@@ -167,12 +171,17 @@ module.exports = exports = defineComponent( {
 				`<a href="${this.targetPage.getUrl()}">${this.targetPage.getPrefixedText()}</a>` )
 		},
 		targetParentText() {
-			const url = new URL( document.location );
+			const url = new URL( this.targetPage.getUrl(), config.wgServer );
 			url.searchParams.set( 'comment', this.comment.parent );
 
 			return mw.message( 'yappin-parent-link',
 				`<a href="${url}">${ mw.message( 'yappin-parent-link-inner' ) }</a>`
 			);
+		},
+		singleCommentLink() {
+			const url = new URL( this.targetPage ? this.targetPage.getUrl() : document.location, config.wgServer );
+			url.searchParams.set( 'comment', this.comment.id );
+			return url;
 		}
 	},
 	methods: {
@@ -201,18 +210,9 @@ module.exports = exports = defineComponent( {
 			} )
 		},
 		linkComment() {
-			const url = new URL(window.location);
-			url.searchParams.set( 'comment', this.comment.id );
-			navigator.clipboard.writeText( url.href );
+			navigator.clipboard.writeText( this.singleCommentLink.href );
 			mw.notify( mw.msg( 'yappin-action-link-copied' ), { tag: 'copy-comment' } );
 		},
-		handleParentTextClick(e) {
-			if ( e.target.tagName === 'A' ) {
-				e.preventDefault();
-				this.store.singleComment = this.comment.parent;
-				window.history.pushState( null, '', e.target.href );
-			}
-		}
 	},
 	setup() {
 		return {

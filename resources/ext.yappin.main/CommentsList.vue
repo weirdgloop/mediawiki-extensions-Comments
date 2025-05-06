@@ -6,7 +6,7 @@
 		>
 			<span>{{ $i18n( 'yappin-single-mode-banner' ) }}</span>
 			&#183;
-			<a @click="disableSingleComment">{{ $i18n( 'yappin-viewall' ) }}</a>
+			<a :href="urlWithoutComment">{{ $i18n( 'yappin-viewall' ) }}</a>
 		</div>
 		<div
 			v-else-if="store.filterByUser"
@@ -14,7 +14,7 @@
 		>
 			<span>{{ $i18n( 'yappin-user-filter-banner', store.filterByUser ) }}</span>
 			&#183;
-			<a @click="disableUserFilter">{{ $i18n( 'yappin-viewall' ) }}</a>
+			<a :href="urlWithoutUser">{{ $i18n( 'yappin-viewall' ) }}</a>
 		</div>
 		<comment-item
 			v-for="c in store.comments"
@@ -82,15 +82,19 @@ module.exports = exports = defineComponent( {
 			error: null
 		};
 	},
+	computed: {
+		urlWithoutComment() {
+			const url = new URL( document.location );
+			url.searchParams.delete( 'comment' );
+			return url;
+		},
+		urlWithoutUser() {
+			const url = new URL( document.location );
+			url.searchParams.delete( 'user' );
+			return url;
+		}
+	},
 	methods: {
-		disableSingleComment() {
-			this.$data.store.singleComment = null;
-			this.$data.store.resetUIState();
-		},
-		disableUserFilter() {
-			this.$data.store.filterByUser = null;
-			this.$data.store.resetUIState();
-		},
 		resetComments() {
 			this.$data.store.comments = [];
 			this.$data.moreContinue = null;
