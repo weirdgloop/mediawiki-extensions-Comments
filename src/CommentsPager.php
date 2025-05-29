@@ -172,7 +172,9 @@ class CommentsPager {
 			$builder->leftJoin( 'com_rating', 'cr', [
 				'cr_comment = c.c_id',
 				'cr_actor' => $this->currentActor
-			] )->select( 'cr.*' );
+			] )
+				->useIndex( 'PRIMARY' )
+				->select( 'cr.*' );
 		}
 	}
 
