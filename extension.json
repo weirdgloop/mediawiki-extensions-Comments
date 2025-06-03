@@ -39,6 +39,10 @@
 		},
 		"FileBackend": {
 			"value": ""
+		},
+		"EnabledNamespaces": {
+			"value": {},
+			"merge_strategy": "array_plus"
 		}
 	},
 	"Hooks": {
@@ -53,6 +57,7 @@
 		"comments-manage",
 		"comments-upload"
 	],
+	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
 	"HookHandlers": {
 		"main": {
 			"class": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers",
@@ -93,7 +98,8 @@
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiPostComment",
 			"services": [
 				"TitleFactory",
-				"Yappin.CommentFactory"
+				"Yappin.CommentFactory",
+				"MainConfig"
 			]
 		},
 		{

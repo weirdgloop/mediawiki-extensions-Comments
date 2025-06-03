@@ -3,9 +3,11 @@
 namespace MediaWiki\Extension\Yappin;
 
 use ExtensionRegistry;
+use MediaWiki\Config\Config;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\Permissions\Authority;
+use MediaWiki\Title\Title;
 use MediaWiki\User\User;
 use Wikimedia\Message\MessageValue;
 
@@ -52,5 +54,33 @@ class Utils {
 		}
 
 		$out->addModules( [ 'ext.yappin.main' ] );
+	}
+
+	/**
+	 * Given a Title object, should comments be enabled for it?
+	 * @param Config $config
+	 * @param Title $title
+	 * @return bool
+	 */
+	public static function isCommentsEnabled( Config $config, Title $title ) {
+		$enabledNs = $config->get( 'CommentsEnabledNamespaces' );
+
+		if ( empty( $enabledNs[ $title->getNamespace() ] ) ) {
+			return false;
+		}
+		if ( $title->isTalkPage() ) {
+			return false;
+		}
+		if ( $title->isSpecialPage() ) {
+			return false;
+		}
+		if ( !$title->exists() ) {
+			return false;
+		}
+		if ( !$config->get( 'CommentsShowOnMainPage' ) && $title->isMainPage() ) {
+			return false;
+		}
+
+		return true;
 	}
 }

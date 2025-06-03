@@ -41,8 +41,7 @@ class GeneralHookHandlers implements
 	public function onBeforePageDisplay( $out, $skin ): void {
 		$title = $out->getTitle();
 
-		// Do not run on special pages, pages that do not exist, or actions other than action=view
-		if ( $title->isSpecialPage() || !$title->exists() || $out->getActionName() !== 'view' ) {
+		if ( !Utils::isCommentsEnabled( $this->config, $title ) || $out->getActionName() !== 'view' ) {
 			return;
 		}
 
@@ -83,5 +82,15 @@ class GeneralHookHandlers implements
 			[],
 			[ 'user' => $username ]
 		);
+	}
+
+	public static function onRegistration() {
+		global $wgCommentsEnabledNamespaces, $wgContentNamespaces;
+
+		foreach ( $wgContentNamespaces as $contentNamespace ) {
+			if ( !isset( $wgCommentsEnabledNamespaces[$contentNamespace] ) ) {
+				$wgCommentsEnabledNamespaces[$contentNamespace] = true;
+			}
+		}
 	}
 }

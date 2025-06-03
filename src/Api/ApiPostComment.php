@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin\Api;
 
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
@@ -23,9 +24,19 @@ class ApiPostComment extends SimpleHandler {
 	 */
 	private CommentFactory $commentFactory;
 
-	public function __construct( TitleFactory $titleFactory, CommentFactory $commentFactory ) {
+	/**
+	 * @var Config
+	 */
+	private Config $config;
+
+	public function __construct(
+		TitleFactory $titleFactory,
+		CommentFactory $commentFactory,
+		Config $config
+	) {
 		$this->titleFactory = $titleFactory;
 		$this->commentFactory = $commentFactory;
+		$this->config = $config;
 	}
 
 	/**
@@ -75,6 +86,11 @@ class ApiPostComment extends SimpleHandler {
 		if ( !$page || !$page->exists() ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-page-missing', $pageId ), 400 );
+		}
+
+		if ( !Utils::isCommentsEnabled( $this->config, $page ) ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400 );
 		}
 
 		// Create a new comment
