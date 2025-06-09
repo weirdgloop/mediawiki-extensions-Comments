@@ -1,13 +1,25 @@
 const { reactive } = require( 'vue' );
+const { SORT_OPTIONS } = require( './util.js' );
 
 const isSpecialComments = !!document.querySelector( 'body.mw-special-Comments' );
+
+const SORT_METHOD_STORAGE_KEY = 'ext-comments-comments-sort';
+let initialSortMethod = 'sort_rating_desc';
+let savedSortMethod = window.localStorage.getItem( SORT_METHOD_STORAGE_KEY );
+if ( savedSortMethod &&
+	Object.values( SORT_OPTIONS ).map( v => v.value ).includes( savedSortMethod ) ) {
+	initialSortMethod = savedSortMethod;
+} else {
+	// Invalid sort method saved, remove it from the browser storage
+	window.localStorage.removeItem( SORT_METHOD_STORAGE_KEY );
+}
 
 const store = reactive( {
 	// Whether we're on Special:Comments instead of a normal wiki page
 	isSpecialComments,
 	ready: false,
 	comments: [],
-	sortMethod: isSpecialComments ? 'sort_date_desc' : 'sort_rating_desc',
+	sortMethod: isSpecialComments ? 'sort_date_desc' : initialSortMethod,
 	isReadOnly: false,
 	globalCooldown: 0,
 	// The ID of the comment that we're currently editing, or null if we aren't editing any
@@ -19,7 +31,11 @@ const store = reactive( {
 	// rather than the entire comment tree.
 	singleComment: null,
 	// Whether to filter the comments displayed by a specific user
-	filterByUser: null
+	filterByUser: null,
+	setSortMethod: (method) => {
+		this.sortMethod = method;
+		window.localStorage.setItem( SORT_METHOD_STORAGE_KEY, this.sortMethod );
+	}
 } )
 
 module.exports = store;

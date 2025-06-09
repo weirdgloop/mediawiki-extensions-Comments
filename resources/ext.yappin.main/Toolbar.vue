@@ -8,7 +8,8 @@
 				<cdx-field>
 					<cdx-select
 						v-model:selected="store.sortMethod"
-						:menu-items="sortOptions"
+						v-on:update:selected="store.setSortMethod"
+						:menu-items="SORT_OPTIONS"
 					></cdx-select>
 					<template #label>
 						{{ $i18n( 'yappin-sort-label' ).text() }}
@@ -20,10 +21,11 @@
 </template>
 
 <script>
-const { defineComponent, ref } = require( 'vue' );
+const { defineComponent } = require( 'vue' );
 const { CdxSelect, CdxField, CdxButton, CdxIcon } = require( '@wikimedia/codex' );
 const store = require( './store.js' );
 const { cdxIconSpeechBubbleAdd } = require( '../icons.json' );
+const { SORT_OPTIONS } = require( './util.js' );
 
 module.exports = exports = defineComponent( {
 	name: 'Toolbar',
@@ -39,14 +41,8 @@ module.exports = exports = defineComponent( {
 		};
 	},
 	setup() {
-		const sortOptions = [
-			{ label: mw.message( 'yappin-sort-highest-rated' ), value: 'sort_rating_desc' },
-			{ label: mw.message( 'yappin-sort-newest' ), value: 'sort_date_desc' },
-			{ label: mw.message( 'yappin-sort-oldest' ), value: 'sort_date_asc' },
-		];
-
 		return {
-			sortOptions,
+			SORT_OPTIONS,
 			cdxIconSpeechBubbleAdd,
 		};
 	}
