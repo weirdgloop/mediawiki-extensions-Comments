@@ -17,6 +17,6 @@ class SchemaHookHandlers implements
 		$maintenanceDb = $updater->getDB();
 		$dbType = $maintenanceDb->getType();
 
-		$updater->addExtensionTable( 'comments', "$dir/$dbType/tables-generated.sql" );
+		$updater->addExtensionTable( 'com_comment', "$dir/$dbType/tables-generated.sql" );
 	}
 }
