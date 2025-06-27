@@ -21,7 +21,7 @@
 
 <script>
 const { defineComponent } = require( 'vue' );
-const { CdxButton } = require( '@wikimedia/codex' );
+const { CdxButton } = require( '../codex.js' );
 const store = require( '../store.js' );
 const Comment = require( '../comment.js' );
 

@@ -18,7 +18,7 @@
 
 <script>
 const { defineComponent } = require( 'vue' );
-const { CdxSelect, CdxField } = require( '@wikimedia/codex' );
+const { CdxSelect, CdxField } = require( './codex.js' );
 const store = require( './store.js' );
 const NewCommentInput = require( './comments/NewCommentInput.vue' );
 const CommentsList = require( './CommentsList.vue' );

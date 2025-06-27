@@ -105,7 +105,7 @@ const CommentAction = require( './CommentAction.vue' );
 const CommentRating = require( './CommentRating.vue' )
 const NewCommentInput = require( '../comments/NewCommentInput.vue' );
 const EditCommentInput = require( '../comments/EditCommentInput.vue' );
-const { CdxIcon } = require( '@wikimedia/codex' );
+const { CdxIcon } = require( '../codex.js' );
 const {
 	cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore, cdxIconShare
 } = require( '../icons.json' );

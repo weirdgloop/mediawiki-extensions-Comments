@@ -184,12 +184,17 @@
 				"styles.less"
 			],
 			"dependencies": [
-				"@wikimedia/codex",
 				"mediawiki.api",
 				"oojs-ui-core",
 				"oojs-ui-widgets",
 				"moment",
 				"ext.yappin.ve"
+			],
+			"codexComponents": [
+				"CdxIcon",
+				"CdxButton",
+				"CdxSelect",
+				"CdxField"
 			],
 			"messages": [
 				"yappin-container-header",

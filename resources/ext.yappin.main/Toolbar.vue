@@ -22,9 +22,9 @@
 
 <script>
 const { defineComponent } = require( 'vue' );
-const { CdxSelect, CdxField, CdxButton, CdxIcon } = require( '@wikimedia/codex' );
+const { CdxSelect, CdxField, CdxButton, CdxIcon } = require( './codex.js' );
 const store = require( './store.js' );
-const { cdxIconSpeechBubbleAdd } = require( '../icons.json' );
+const { cdxIconSpeechBubbleAdd } = require( './icons.json' );
 const { SORT_OPTIONS } = require( './util.js' );
 
 module.exports = exports = defineComponent( {
