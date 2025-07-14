@@ -8,7 +8,6 @@ use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
-use MediaWiki\Rest\Validator\JsonBodyValidator;
 use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
@@ -140,16 +139,9 @@ class ApiEditComment extends SimpleHandler {
 	/**
 	 * @inheritDoc
 	 */
-	public function getBodyValidator( $contentType ) {
-		if ( $contentType !== 'application/json' ) {
-			throw new HttpException( "Unsupported Content-Type",
-				415,
-				[ 'content_type' => $contentType ]
-			);
-		}
-
+	public function getBodyParamSettings(): array {
 		if ( $this->getRequest()->getMethod() === 'PUT' ) {
-			$body = [
+			return [
 				'html' => [
 					self::PARAM_SOURCE => 'body',
 					ParamValidator::PARAM_TYPE => 'string',
@@ -162,7 +154,7 @@ class ApiEditComment extends SimpleHandler {
 				]
 			];
 		} else {
-			$body = [
+			return [
 				'delete' => [
 					self::PARAM_SOURCE => 'body',
 					ParamValidator::PARAM_TYPE => 'boolean',
@@ -170,8 +162,6 @@ class ApiEditComment extends SimpleHandler {
 				]
 			];
 		}
-
-		return new JsonBodyValidator( $body );
 	}
 
 	/**

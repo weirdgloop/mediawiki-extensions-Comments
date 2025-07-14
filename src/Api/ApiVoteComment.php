@@ -7,7 +7,6 @@ use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
-use MediaWiki\Rest\Validator\JsonBodyValidator;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -68,21 +67,14 @@ class ApiVoteComment extends SimpleHandler {
 	/**
 	 * @inheritDoc
 	 */
-	public function getBodyValidator( $contentType ) {
-		if ( $contentType !== 'application/json' ) {
-			throw new HttpException( "Unsupported Content-Type",
-				415,
-				[ 'content_type' => $contentType ]
-			);
-		}
-
-		return new JsonBodyValidator( [
+	public function getBodyParamSettings(): array {
+		return [
 			'rating' => [
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => [ -1, 0, 1 ],
 				ParamValidator::PARAM_REQUIRED => true
 			],
-		] );
+		];
 	}
 
 	/**
