@@ -75,7 +75,7 @@ class CommentsPager {
 	 */
 	public function __construct(
 		array $options,
-		int $currentActor = null,
+		?int $currentActor = null,
 		?string $sortMethod = self::SORT_DATE_DESC,
 		?int $filterByActor = null
 	) {
