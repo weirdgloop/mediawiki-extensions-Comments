@@ -222,6 +222,11 @@ module.exports = exports = defineComponent( {
 			cdxIconRestore,
 			cdxIconShare
 		}
+	},
+	mounted() {
+		if (parseInt( this.store.singleComment ) === this.comment.id) {
+			this.$el.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+		}
 	}
 } );
 </script>
