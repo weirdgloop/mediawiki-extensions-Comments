@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin\Models;
 
-use ExtensionRegistry;
+use MediaWiki\Registration\ExtensionRegistry;
 use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
@@ -11,9 +11,9 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
-use ParserOptions;
+use MediaWiki\Parser\ParserOptions;
 use Wikimedia\Rdbms\IDatabase;
-use WikitextContent;
+use MediaWiki\Content\WikitextContent;
 
 class Comment {
 	public const TABLE_NAME = 'com_comment';

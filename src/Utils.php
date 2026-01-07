@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin;
 
-use ExtensionRegistry;
+use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Config\Config;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;

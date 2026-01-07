@@ -12,7 +12,7 @@ use MediaWiki\Output\OutputPage;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
-use Skin;
+use MediaWiki\Skin\Skin;
 
 class GeneralHookHandlers implements
 	GetAllBlockActionsHook,

@@ -2,9 +2,9 @@
 
 namespace MediaWiki\Extension\Yappin\Files;
 
-use FileBackend;
-use FileBackendGroup;
-use FSFileBackend;
+use Wikimedia\FileBackend\FileBackend;
+use Wikimedia\FileBackend\FileBackendGroup;
+use Wikimedia\FileBackend\FSFileBackend;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\Permissions\Authority;
