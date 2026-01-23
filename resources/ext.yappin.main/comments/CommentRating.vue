@@ -38,6 +38,10 @@ const { cdxIconUpTriangle, cdxIconDownTriangle } = require( '../icons.json' );
 
 const api = new mw.Rest();
 
+const config = mw.config.get( [
+	'wgContentLanguage'
+] );
+
 module.exports = exports = defineComponent( {
 	name: 'CommentRating',
 	components: {
@@ -78,9 +82,26 @@ module.exports = exports = defineComponent( {
 				this.$props.comment.rating = data.comment.rating;
 			} ).always( () => {
 				this.$data.waiting = false;
-			} ).fail( () => {
+			} ).fail( ( _, result ) => {
 				// Reset the UI state back to the previous value if the API call failed
 				this.$props.comment.userRating = oldValue
+
+				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
+					result.xhr.responseJSON, 'messageTranslations' ) ) {
+					if ( result.xhr.responseJSON.errorKey === 'yappin-submit-error-spam' ) {
+						// If the comment was rejected for spam/abuse, add a small cooldown
+						this.$data.store.globalCooldown = 10;
+					}
+
+					if ( config.wgContentLanguage in result.xhr.responseJSON.messageTranslations ) {
+						error = result.xhr.responseJSON.messageTranslations[ config.wgContentLanguage ];
+					} else {
+						error = result.xhr.responseJSON.messageTranslations.en
+					}
+				} else {
+					error = mw.Message( 'unknown-error' );
+				}
+				mw.notify( error, { type: 'error', tag: 'vote-comment-error' } );
 			} )
 		}
 	},

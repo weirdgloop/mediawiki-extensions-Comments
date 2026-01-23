@@ -3,10 +3,14 @@
 namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Language\FormatterFactory;
+use MediaWiki\Message\Message;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
+use MediaWiki\Status\StatusFormatter;
 use MediaWiki\User\TempUser\TempUserCreator;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
@@ -14,10 +18,16 @@ use Wikimedia\ParamValidator\ParamValidator;
 class ApiVoteComment extends SimpleHandler {
 	private CommentFactory $commentFactory;
 	private TempUserCreator $tempUserCreator;
+	private StatusFormatter $statusFormatter;
 
-	public function __construct( CommentFactory $commentFactory, TempUserCreator $tempUserCreator ) {
+	public function __construct(
+		CommentFactory $commentFactory,
+		TempUserCreator $tempUserCreator,
+		FormatterFactory $formatterFactory
+	) {
 		$this->commentFactory = $commentFactory;
 		$this->tempUserCreator = $tempUserCreator;
+		$this->statusFormatter = $formatterFactory->getStatusFormatter( RequestContext::getMain() );
 	}
 
 	/**
@@ -61,8 +71,11 @@ class ApiVoteComment extends SimpleHandler {
 			if ( $status->isOK() ) {
 				$user = $status->getUser();
 			} else {
-				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-tempusercreate' ), 400 );
+				$msg = $this->statusFormatter->getMessage( $status );
+				if ( $msg->getKey() === 'acct_creation_throttle_hit' ) {
+					$msg = new Message( 'yappin-generic-error-tempuser-throttle', $msg->getParams() );
+				}
+				throw new LocalizedHttpException( MessageValue::newFromSpecifier( $msg ), 400 );
 			}
 		}
 

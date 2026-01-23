@@ -96,7 +96,8 @@
 				"TitleFactory",
 				"Yappin.CommentFactory",
 				"MainConfig",
-				"TempUserCreator"
+				"TempUserCreator",
+				"FormatterFactory"
 			]
 		},
 		{
@@ -124,7 +125,8 @@
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiVoteComment",
 			"services": [
 				"Yappin.CommentFactory",
-				"TempUserCreator"
+				"TempUserCreator",
+				"FormatterFactory"
 			]
 		}
 	],
