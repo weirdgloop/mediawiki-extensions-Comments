@@ -39,6 +39,7 @@
 	"yappin-submit-error-noperm": "You do not have permission to post or edit a comment.",
 	"yappin-submit-error-blocked": "You are blocked from commenting.",
 	"yappin-submit-error-spam": "Your comment has been blocked as it has been identified as harmful.",
+	"yappin-submit-error-tempusercreate": "There was a problem creating a temporary user account.",
 	"yappin-upload-error-noperm": "You do not have permission to upload files to comments.",
 	"yappin-upload-error-unknown": "An unknown error occurred while uploading the file. Code: $1",
 	"yappin-rating-error-invalid": "Invalid value provided for rating.",

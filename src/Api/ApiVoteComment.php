@@ -7,17 +7,17 @@ use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
+use MediaWiki\User\TempUser\TempUserCreator;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiVoteComment extends SimpleHandler {
-	/**
-	 * @var CommentFactory
-	 */
 	private CommentFactory $commentFactory;
+	private TempUserCreator $tempUserCreator;
 
-	public function __construct( CommentFactory $commentFactory ) {
+	public function __construct( CommentFactory $commentFactory, TempUserCreator $tempUserCreator ) {
 		$this->commentFactory = $commentFactory;
+		$this->tempUserCreator = $tempUserCreator;
 	}
 
 	/**
@@ -51,11 +51,20 @@ class ApiVoteComment extends SimpleHandler {
 			);
 		}
 
-		$user = $this->getAuthority()->getUser();
-
-//		if ( $comment->getUser()->getId() === $user->getId() ) {
-//			throw new HttpException( "Cannot vote on user's own comment", 400 );
-//		}
+		// Handle temporary users. Use "edit" action as it's the only one supported right now.
+		$user = $this->getAuthority();
+		if ( $this->tempUserCreator->shouldAutoCreate( $user, 'edit' ) ) {
+			$status = $this->tempUserCreator->create(
+				null,
+				$this->getSession()->getRequest()
+			);
+			if ( $status->isOK() ) {
+				$user = $status->getUser();
+			} else {
+				throw new LocalizedHttpException(
+					new MessageValue( 'yappin-submit-error-tempusercreate' ), 400 );
+			}
+		}
 
 		$rating = $comment->setRatingForUser( $user, $rating );
 

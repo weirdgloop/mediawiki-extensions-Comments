@@ -37,9 +37,6 @@
 		"UseAbuseFilter": {
 			"value": true
 		},
-		"FileBackend": {
-			"value": ""
-		},
 		"EnabledNamespaces": {
 			"value": {},
 			"merge_strategy": "array_plus"
@@ -54,8 +51,7 @@
 	},
 	"AvailableRights": [
 		"comments",
-		"comments-manage",
-		"comments-upload"
+		"comments-manage"
 	],
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
 	"HookHandlers": {
@@ -99,7 +95,8 @@
 			"services": [
 				"TitleFactory",
 				"Yappin.CommentFactory",
-				"MainConfig"
+				"MainConfig",
+				"TempUserCreator"
 			]
 		},
 		{
@@ -126,15 +123,8 @@
 			"method": "POST",
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiVoteComment",
 			"services": [
-				"Yappin.CommentFactory"
-			]
-		},
-		{
-			"path": "/comments/v0/comment/upload",
-			"method": "POST",
-			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiUploadFile",
-			"services": [
-				"Yappin.CommentFileService"
+				"Yappin.CommentFactory",
+				"TempUserCreator"
 			]
 		}
 	],

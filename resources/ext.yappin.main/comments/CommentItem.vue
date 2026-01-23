@@ -5,7 +5,7 @@
 			<div class="comment-body">
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
-						<a class="comment-author" :href="userPageLink">
+						<a class="comment-author mw-userlink" :class="{ 'mw-tempuserlink': comment.user.temp }" :href="userPageLink">
 							{{ comment.user.anon ? $i18n( 'yappin-anon' ) : comment.user.name }}
 						</a>
 						<div class="comment-info">

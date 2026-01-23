@@ -9,33 +9,26 @@ use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\TempUser\TempUserCreator;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiPostComment extends SimpleHandler {
-	/**
-	 * @var TitleFactory
-	 */
 	private TitleFactory $titleFactory;
-
-	/**
-	 * @var CommentFactory
-	 */
 	private CommentFactory $commentFactory;
-
-	/**
-	 * @var Config
-	 */
 	private Config $config;
+	private TempUserCreator $tempUserCreator;
 
 	public function __construct(
 		TitleFactory $titleFactory,
 		CommentFactory $commentFactory,
-		Config $config
+		Config $config,
+		TempUserCreator $tempUserCreator
 	) {
 		$this->titleFactory = $titleFactory;
 		$this->commentFactory = $commentFactory;
 		$this->config = $config;
+		$this->tempUserCreator = $tempUserCreator;
 	}
 
 	/**
@@ -92,10 +85,25 @@ class ApiPostComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400 );
 		}
 
+		// Handle temporary users. Use "edit" action as it's the only one supported right now.
+		$user = $this->getAuthority();
+		if ( $this->tempUserCreator->shouldAutoCreate( $user, 'edit' ) ) {
+			$status = $this->tempUserCreator->create(
+				null,
+				$this->getSession()->getRequest()
+			);
+			if ( $status->isOK() ) {
+				$user = $status->getUser();
+			} else {
+				throw new LocalizedHttpException(
+					new MessageValue( 'yappin-submit-error-tempusercreate' ), 400 );
+			}
+		}
+
 		// Create a new comment
 		$comment = $this->commentFactory->newEmpty()
 			->setTitle( $page )
-			->setActor( $this->getAuthority()->getUser() )
+			->setActor( $user )
 			->setParent( $parent );
 
 		if ( $html ) {

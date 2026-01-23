@@ -73,12 +73,21 @@ class Comment {
 	private $commentFactory;
 
 	/**
+	 * @param bool $fromExisting whether this object is being built from an existing database row
 	 * @internal
 	 */
-	public function __construct() {
+	public function __construct( $fromExisting = false ) {
 		$services = MediaWikiServices::getInstance();
 		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-		$this->actorStore = $services->getActorStore();
+
+		if ( $fromExisting ) {
+			// Use getActorStoreForImport here, as there may be some IP actors that require creation,
+			// even if temp accounts are enabled. This is probably suboptimal, but the only way to deal with this for now.
+			$this->actorStore = $services->getActorStoreFactory()->getActorStoreForImport();
+		} else {
+			$this->actorStore = $services->getActorStore();
+		}
+
 		$this->config = $services->getMainConfig();
 		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
 	}
@@ -505,7 +514,8 @@ class Comment {
 			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
 				'name' => $this->getActor()->getName(),
-				'anon' => !$this->getActor()->isRegistered()
+				'anon' => !$this->getActor()->isRegistered(),
+				'temp' => MediaWikiServices::getInstance()->getUserIdentityUtils()->isTemp( $this->getActor() )
 			],
 			'parent' => $this->mParentId,
 			'deleted' => $this->getDeletedActor() ? [

@@ -32,7 +32,7 @@ class CommentFactory {
 	 * @return Comment
 	 */
 	public function newFromRow( $row, $user = null ) {
-		$comment = new Comment();
+		$comment = new Comment( true );
 		$comment->mId = (int)$row->c_id;
 		$comment->mPageId = (int)$row->c_page;
 
