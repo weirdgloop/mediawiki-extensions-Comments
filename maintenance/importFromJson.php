@@ -118,7 +118,7 @@ class ImportFromJson extends Maintenance {
 			'c_parent' => $data[ 'parentId' ] ?? null,
 			'c_rating' => 0,
 			'c_wikitext' => $data[ 'wikitext' ],
-			'c_html' => $parserOutput->getText()
+			'c_html' => $parserOutput->runOutputPipeline( $parserOpts, [] )->getContentHolderText(),
 		];
 
 		$dbw->newInsertQueryBuilder()
