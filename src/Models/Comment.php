@@ -415,7 +415,7 @@ class Comment {
 			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
 			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
 
-			$this->mHtml = $parserOutput->getText();
+			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts, [] )->getContentHolderText();
 		}
 	}
 
