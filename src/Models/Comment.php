@@ -144,11 +144,12 @@ class Comment {
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param UserIdentity $user
+	 * @param int|null $actorId
 	 * @return Comment
 	 */
-	public function setActor( $user ) {
+	public function setActor( $user, $actorId = null ) {
 		$this->mActor = $user;
-		$this->mActorId = $this->actorStore->acquireActorId( $user, $this->dbw );
+		$this->mActorId = $actorId ?? $this->actorStore->acquireActorId( $user, $this->dbw );
 		return $this;
 	}
 
